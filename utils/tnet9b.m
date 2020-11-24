@@ -1,4 +1,4 @@
-function C = tnet9
+function C = tnet9b
 
 %                           from
 

@@ -1,4 +1,4 @@
-function [d,dd,converged,sig,i,L] = opt_ss1_es1p1_x(A,C,K,P0,iters,sig,ifac,nfac,tol)
+function [d,L] = opt_ss1_sd(A,C,K,P0,iters,sig)
 
 [n,m] = size(P0);
 
@@ -12,13 +12,10 @@ CAK = CAK_seq(A,C,K);
 
 % Calculate "fake" dynamical dependence of initial projection
 
-dd = nan(iters,1);
 d = ssdd1(L,M,CAK);
-dd(1) = d;
 
 % Optimise
 
-converged = false;
 for i = 2:iters
 
 	% "Mutate" projection and orthonormalise
@@ -34,17 +31,6 @@ for i = 2:iters
 	if dtry < d
 		L = Ltry;
 		d = dtry;
-		sig = ifac*sig;
-	else
-		sig = nfac*sig;
-	end
-	dd(i) = d;
-
-	% Test convergence
-
-	if sig < tol || d < tol
-		converged = true;
-		break
 	end
 
 end

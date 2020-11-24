@@ -28,6 +28,7 @@ if ~exist('es1p1',   'var'), es1p1   = true;    end % use 1+1 evolutionary strat
 if ~exist('esrule',  'var'), esrule  = 1/5;     end % evolutionary strategy adaptation rule
 if ~exist('estol',   'var'), estol   = 1e-8;    end % evolutionary strategy convergence tolerance
 if ~exist('niters',  'var'), niters  = 1000;    end % iterations
+if ~exist('piters',  'var'), piters  = 10000;   end % pre-optimisation iterations
 if ~exist('nruns',   'var'), nruns   = 10;      end % runs (restarts)
 if ~exist('iseed',   'var'), iseed   = 0;       end % initialisation random seed (0 to use current rng state)
 if ~exist('oseed',   'var'), oseed   = 0;       end % optimisation random seed (0 to use current rng state)
@@ -91,10 +92,20 @@ orstate = rng_seed(oseed);
 for k = 1:nruns
 	fprintf('run %2d of %2d ... ',k,nruns);
 	if es1p1
+		if piters > 0
+			[doptk,converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_es1p1(A,C,K,P0(:,:,k),piters,sig0,ifac,nfac,estol);
+			fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
+			if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
+		end
 		[dopt(k),dd(:,k),converged,sig,iopt(k),Lopt(:,:,k)] = opt_ss_es1p1_x(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol);
 		fprintf('dopt = %.4e : sig = %.4e : ',dopt(k),sig);
 		if converged, fprintf('converged in %d iterations\n',iopt(k)); else, fprintf('unconverged\n'); end
 	else
+		if piters > 0
+			[doptk,converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_sd(A,C,K,P0(:,:,k),piters,sig0);
+			fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
+			if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
+		end
 		[dopt(k),dd(:,k),Lopt(:,:,k)] = opt_ss_sd_x(A,C,K,P0(:,:,k),niters,sig0);
 		fprintf('dopt = %.4e\n',dopt(k));
 	end
