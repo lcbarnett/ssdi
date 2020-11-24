@@ -1,6 +1,10 @@
-function [d,converged,sig,i,L] = opt_ss_es1p1(A,C,K,L,iters,sig,ifac,nfac,tol)
+function [d,converged,sig,i,L] = opt_ss_es1p1(A,C,K,P0,iters,sig,ifac,nfac,tol)
 
-[n,m] = size(L);
+[n,m] = size(P0);
+
+% Orthonormalise initial projection
+
+L = orthonormalise(P0);
 
 % Calculate dynamical dependence of initial projection
 

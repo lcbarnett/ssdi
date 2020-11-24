@@ -1,10 +1,14 @@
-function [d,dd,L] = opt_ss_sd_x(A,C,K,L,iters,sig)
+function [d,dd,L] = opt_ss_sd_x(A,C,K,P0,iters,sig)
 
-[n,m] = size(L);
-dd = nan(iters,1);
+[n,m] = size(P0);
+
+% Orthonormalise initial projection
+
+L = orthonormalise(P0);
 
 % Calculate dynamical dependence of initial projection
 
+dd = nan(iters,1);
 d = ssdd(L,A,C,K);
 dd(1) = d;
 

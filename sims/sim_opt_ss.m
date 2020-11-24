@@ -78,10 +78,7 @@ end
 % Initial linear projections
 
 irstate = rng_seed(iseed);
-L0 = zeros(n,m,nruns);
-for k = 1:nruns
-	L0(:,:,k) = orthonormalise(randn(n,m));
-end
+P0 = randn(n,m,nruns);
 rng_restore(irstate);
 
 iopt = zeros(1,nruns);
@@ -94,11 +91,11 @@ orstate = rng_seed(oseed);
 for k = 1:nruns
 	fprintf('run %2d of %2d ... ',k,nruns);
 	if es1p1
-		[dopt(k),dd(:,k),converged,sig,iopt(k),Lopt(:,:,k)] = opt_ss_es1p1_x(A,C,K,L0(:,:,k),niters,sig0,ifac,nfac,estol);
+		[dopt(k),dd(:,k),converged,sig,iopt(k),Lopt(:,:,k)] = opt_ss_es1p1_x(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol);
 		fprintf('dopt = %.4e : sig = %.4e : ',dopt(k),sig);
 		if converged, fprintf('converged in %d iterations\n',iopt(k)); else, fprintf('unconverged\n'); end
 	else
-		[dopt(k),dd(:,k),Lopt(:,:,k)] = opt_ss_sd_x(A,C,K,L0(:,:,k),niters,sig0);
+		[dopt(k),dd(:,k),Lopt(:,:,k)] = opt_ss_sd_x(A,C,K,P0(:,:,k),niters,sig0);
 		fprintf('dopt = %.4e\n',dopt(k));
 	end
 

@@ -78,12 +78,9 @@ wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 % Initial linear projections
 
 irstate = rng_seed(iseed);
-L0 = cell(n1,1);
+P0 = cell(n1,1);
 for m = 1:n1
-	L0{m} = zeros(n,m,nruns);
-	for k = 1:nruns
-		L0{m}(:,:,k) = orthonormalise(randn(n,m));
-	end
+	P0{m} = randn(n,m,nruns);
 end
 rng_restore(irstate);
 
@@ -109,11 +106,11 @@ for m = 1:n1
 	for k = 1:nruns
 		fprintf('\trun %2d of %2d ... ',k,nruns);
 		if es1p1
-			[dopt(k,m),converged,sig,iopt(k,m),Lopt{m}(:,:,k)] = opt_ss_es1p1(A,C,K,L0{m}(:,:,k),niters,sig0,ifac(m),nfac(m),estol);
+			[dopt(k,m),converged,sig,iopt(k,m),Lopt{m}(:,:,k)] = opt_ss_es1p1(A,C,K,P0{m}(:,:,k),niters,sig0,ifac(m),nfac(m),estol);
 			fprintf('dopt = %.4e : sig = %.4e : ',dopt(k,m),sig);
 			if converged, fprintf('converged in %d iterations\n',iopt(k,m)); else, fprintf('unconverged\n'); end
 		else
-			[dopt(k,m),Lopt{m}(:,:,k)] = opt_ss_sd(A,C,K,L0{m}(:,:,k),niters,sig0);
+			[dopt(k,m),Lopt{m}(:,:,k)] = opt_ss_sd(A,C,K,P0{m}(:,:,k),niters,sig0);
 			fprintf('dopt = %.4e\n',dopt(k,m));
 		end
 	end
