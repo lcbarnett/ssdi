@@ -86,30 +86,34 @@ iopt = zeros(1,nruns);
 dopt = zeros(1,nruns);
 Lopt = zeros(n,m,nruns);
 
-dd = nan(niters,nruns);
+titers = piters+niters;
+ddp = nan(piters,nruns);
+ddn = nan(niters,nruns);
+dd  = nan(titers,nruns);
 
 orstate = rng_seed(oseed);
 for k = 1:nruns
 	fprintf('run %2d of %2d ... ',k,nruns);
 	if es1p1
 		if piters > 0
-			[doptk,converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_es1p1(A,C,K,P0(:,:,k),piters,sig0,ifac,nfac,estol);
+			[doptk,ddp(:,k),converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_es1p1_x(A,C,K,P0(:,:,k),piters,sig0,ifac,nfac,estol);
 			fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
 			if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
 		end
-		[dopt(k),dd(:,k),converged,sig,iopt(k),Lopt(:,:,k)] = opt_ss_es1p1_x(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol);
+		[dopt(k),ddn(:,k),converged,sig,iopt(k),Lopt(:,:,k)] = opt_ss_es1p1_x(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol);
 		fprintf('dopt = %.4e : sig = %.4e : ',dopt(k),sig);
 		if converged, fprintf('converged in %d iterations\n',iopt(k)); else, fprintf('unconverged\n'); end
 	else
 		if piters > 0
-			[doptk,converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_sd(A,C,K,P0(:,:,k),piters,sig0);
+			[doptk,ddp(:,k),converged,sigk,ioptk,P0(:,:,k)] = opt_ss1_sd_x(A,C,K,P0(:,:,k),piters,sig0);
 			fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
 			if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
 		end
-		[dopt(k),dd(:,k),Lopt(:,:,k)] = opt_ss_sd_x(A,C,K,P0(:,:,k),niters,sig0);
+		[dopt(k),ddn(:,k),Lopt(:,:,k)] = opt_ss_sd_x(A,C,K,P0(:,:,k),niters,sig0);
 		fprintf('dopt = %.4e\n',dopt(k));
 	end
-
+	ddk = [ddp(~isnan(ddp(:,k)),k);ddn(~isnan(ddn(:,k)),k)];
+	dd(1:length(ddk),k) = ddk;
 end
 rng_restore(orstate);
 
