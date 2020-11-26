@@ -1,4 +1,4 @@
-function D = ssdd1(L,M,U)
+function D = ssdd1(L,M,CAK)
 
 % Calculate "fake" dynamical dependence of projection L for
 % innovations-form state-space model with parameters A,C,K.
@@ -10,10 +10,10 @@ function D = ssdd1(L,M,U)
 
 % Calculate Frobenius norm of dynamical independence condition
 
-r = size(U,3);
+r = size(CAK,3);
 D = 0;
 for k = 1:r
-	Wk = L'*U(:,:,k)*M;
+	Wk = L'*CAK(:,:,k)*M;
 	Wk2 = Wk.*Wk;
 	D = D + sum(Wk2(:));
 end
