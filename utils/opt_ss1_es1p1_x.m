@@ -1,10 +1,6 @@
-function [d,dd,converged,sig,i,L] = opt_ss1_es1p1_x(A,C,K,P0,iters,sig,ifac,nfac,tol)
+function [d,dd,converged,sig,i,L] = opt_ss1_es1p1_x(CAK,P0,iters,sig,ifac,nfac,tol)
 
 [n,m] = size(P0);
-
-% Calculate CAK sequence
-
-CAK = CAK_seq(A,C,K);
 
 % Orthonormalise initial projection
 
