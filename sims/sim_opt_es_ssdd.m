@@ -30,6 +30,7 @@ if ~exist('niters',  'var'), niters  = 1000;      end % iterations
 if ~exist('piters',  'var'), piters  = 10000;     end % pre-optimisation iterations
 if ~exist('nruns',   'var'), nruns   = 10;        end % runs (restarts)
 if ~exist('nnorm',   'var'), nnorm   = 1000;      end % normalisation projections
+if ~exist('hist',    'var'), hist    = true;      end % calculate optimisation history?
 if ~exist('iseed',   'var'), iseed   = 0;         end % initialisation random seed (0 to use current rng state)
 if ~exist('oseed',   'var'), oseed   = 0;         end % optimisation random seed (0 to use current rng state)
 
@@ -107,8 +108,10 @@ iopt = zeros(1,nruns);
 dopt = zeros(1,nruns);
 Lopt = zeros(n,m,nruns);
 
-dhistp = nan(piters,nruns);
-dhistn = nan(niters,nruns);
+if hist
+	dhistp = nan(piters,nruns);
+	dhistn = nan(niters,nruns);
+end
 
 orstate = rng_seed(oseed);
 for k = 1:nruns
@@ -117,15 +120,18 @@ for k = 1:nruns
 
 	% pre-optimisation
 
-	[doptk,P0(:,:,k),converged,sigk,ioptk,dhistp(:,k)] = opt_ssddx(CAK,P0(:,:,k),piters,sig0,ifac,nfac,estol,true);
+	[doptk,P0(:,:,k),converged,sigk,ioptk,dhistpk] = opt_es_ssddx(CAK,P0(:,:,k),piters,sig0,ifac,nfac,estol,hist);
+	if hist, dhistp(:,k) = dhistpk; end
 	fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
 
 	% optimisation
 
-	[dopt(k),Lopt(:,:,k),converged,sig,iopt(k),dhistn(:,k)] = opt_ssdd(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol,true);
+	[dopt(k),Lopt(:,:,k),converged,sig,iopt(k),dhistnk] = opt_es_ssdd(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol,hist);
+	if hist, dhistn(:,k) = dhistnk; end
 	fprintf('dopt = %.4e : sig = %.4e : ',dopt(k),sig);
 	if converged, fprintf('converged in %d iterations\n',iopt(k)); else, fprintf('unconverged\n'); end
+
 end
 rng_restore(orstate);
 
@@ -143,22 +149,30 @@ end
 
 Loptd = gmetrics(Lopt);
 
-clear k
+% Save workspace
 
-wsfile = fullfile(resdir,[scriptname rid '.mat']);
+clear k
+if hist
+	wsfile = fullfile(resdir,[scriptname '_hist' rid '.mat']);
+else
+	clear dhistp dhistn
+	wsfile = fullfile(resdir,[scriptname '_nohist' rid '.mat']);
+end
 fprintf('*** saving workspace in ''%s''... ',wsfile);
 save(wsfile);
-fprintf('done\n');
+fprintf('\ndone\n');
 
 % Plot optimisation histories
 
-if nnorm > 0
-	dhistp = dhistp/ddpmean;
-	dhistn = dhistn/ddnmean;
+if hist
+	if nnorm > 0
+		dhistp = dhistp/ddpmean;
+		dhistn = dhistn/ddnmean;
+	end
+	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
+	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
+	gp_opthist(dhistp,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
-gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
-gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
-gp_opthist(dhistp,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 
 % Plot inter-optima subspace distances
 

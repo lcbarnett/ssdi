@@ -37,12 +37,13 @@ do
         m      = $m;\
         niters = 10000;\
         nruns  = 100;\
+        hist   = false;\
         gvdisp = false;\
         gpplot = false;\
         mseed  = 1234;\
         iseed  = 5678;\
         oseed  = 9012;\
-        sim_opt_ss;\
+        sim_opt_es_ssdd;\
         quit"
 
     # run Matlab as background job

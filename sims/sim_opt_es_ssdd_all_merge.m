@@ -1,4 +1,8 @@
-% specify mergedir, mergerid
+% Specify mergedir, mergeroot, mergerid
+%
+% probably
+%
+% mergeroot = 'sim_opt_es_ssdd_nohist';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -12,7 +16,7 @@ if ~exist('gpplot',  'var'), gpplot  = 2;       end % Gnuplot display? (0 - gene
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 mm = 1;
-matfile = fullfile(mergedir,['sim_opt_ss_nohist' mergerid '_' num2str(mm) '.mat']);
+matfile = fullfile(mergedir,[mergeroot mergerid '_' num2str(mm) '.mat']);
 load(matfile);
 
 n1 = n-1;
@@ -26,8 +30,8 @@ tmp_dopt(:,mm) = dopt;
 tmp_Lopt{mm} = Lopt;
 
 for mm = 2:n1
-	matfile = fullfile(mergedir,['sim_opt_ss_nohist' mergerid '_' num2str(mm) '.mat']);
-	fprintf('mmerging ''%s''\n',matfile);
+	matfile = fullfile(mergedir,[mergeroot mergerid '_' num2str(mm) '.mat']);
+	fprintf('merging ''%s''\n',matfile);
 	load(matfile);
 	tmp_iopt(:,mm) = iopt;
 	tmp_dopt(:,mm) = dopt;
@@ -42,7 +46,7 @@ resdir     = mergedir;
 rid        = mergerid;
 scriptname = mfilename;
 
-clear mergedir mergerid tmp_iopt tmp_dopt tmp_Lopt mm
+clear mergedir mergeroot mergerid tmp_iopt tmp_dopt tmp_Lopt mm
 
 % fprintf('\noptimal dynamical dependence =\n\n');
 % disp(num2str(1:n1,'    %8d'));

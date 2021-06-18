@@ -1,4 +1,4 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_ssddx(CAK,P0,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ssddx(CAK,P0,maxiters,sig,ifac,nfac,tol,hist)
 
 [n,m] = size(P0);
 
@@ -13,6 +13,8 @@ dopt = ssddx(Lopt,Mopt,CAK);
 if hist
 	dhist = nan(maxiters,1);
 	dhist(1) = dopt;
+else
+	dhist = [];
 end
 
 % Optimise
