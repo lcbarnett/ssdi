@@ -1,7 +1,8 @@
-function D = ssdd1(L,M,CAK)
+function D = ssddx(L,M,CAK)
 
-% Calculate "fake" dynamical dependence of projection L for
-% innovations-form state-space model with parameters A,C,K.
+% Calculate proxy dynamical dependence of projection L for
+% innovations-form state-space model with parameters A,C,K,
+% for preoptimisation
 %
 % U_k, k = 1,...,r is the sequence of m x (n-m) matrices CA^{k-1}K
 %

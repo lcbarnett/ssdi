@@ -1,23 +1,28 @@
-function [d,converged,sig,i,L] = opt_ss_es1p1(A,C,K,P0,iters,sig,ifac,nfac,tol)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_ssdd(A,C,K,P0,maxiters,sig,ifac,nfac,tol,hist)
 
 [n,m] = size(P0);
 
 % Orthonormalise initial projection
 
-L = orthonormalise(P0);
+Lopt = orthonormalise(P0);
 
 % Calculate dynamical dependence of initial projection
 
-d = ssdd(L,A,C,K);
+dopt = ssdd(Lopt,A,C,K);
+
+if hist
+	dhist = nan(maxiters,1);
+	dhist(1) = dopt;
+end
 
 % Optimise
 
 converged = false;
-for i = 2:iters
+for iters = 2:maxiters
 
 	% "Mutate" projection and orthonormalise
 
-	Ltry = orthonormalise(L + sig*randn(n,m));
+	Ltry = orthonormalise(Lopt + sig*randn(n,m));
 
 	% Calculate dynamical dependence of mutated projection
 
@@ -25,17 +30,21 @@ for i = 2:iters
 
 	% If dynamical dependence smaller, accept mutant
 
-	if dtry < d
-		L = Ltry;
-		d = dtry;
+	if dtry < dopt
+		Lopt = Ltry;
+		dopt = dtry;
 		sig = ifac*sig;
 	else
 		sig = nfac*sig;
 	end
 
+	if hist
+		dhist(iters) = dopt;
+	end
+
 	% Test convergence
 
-	if sig < tol || d < tol
+	if sig < tol || dopt < tol
 		converged = true;
 		break
 	end
