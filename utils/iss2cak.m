@@ -1,4 +1,4 @@
-function CAK = CAK_seq(A,C,K)
+function CAK = iss2cak(A,C,K)
 
 % Return the sequence U_k = CA^{k-1}K, k = 1,...,r of n times matrices
 

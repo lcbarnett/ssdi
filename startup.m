@@ -17,6 +17,22 @@ sdir = 'utils';
 addpath(fullfile(ssdi_root,sdir));
 fprintf('[ssdi startup] Added sub-path %s\n',sdir);
 
+sdir = 'metrics';
+addpath(fullfile(ssdi_root,sdir));
+fprintf('[ssdi startup] Added sub-path %s\n',sdir);
+
+sdir = 'visualisation';
+addpath(fullfile(ssdi_root,sdir));
+fprintf('[ssdi startup] Added sub-path %s\n',sdir);
+
+sdir = 'networks';
+addpath(fullfile(ssdi_root,sdir));
+fprintf('[ssdi startup] Added sub-path %s\n',sdir);
+
+sdir = 'experimental';
+addpath(fullfile(ssdi_root,sdir));
+fprintf('[ssdi startup] Added sub-path %s\n',sdir);
+
 clear sdir
 
 % Initialize mvgc library with gpmat and gvmat APIs

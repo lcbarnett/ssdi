@@ -1,4 +1,4 @@
-function gp_plocker(Loptx,n,m,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
+function gp_plucker(Loptx,n,m,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
 
 % Plot distances from subspaces spanned by all combinatios of m axes
 

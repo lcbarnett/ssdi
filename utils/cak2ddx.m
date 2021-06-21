@@ -1,4 +1,4 @@
-function D = ssddx(L,M,CAK)
+function D = cak2ddx(L,M,CAK)
 
 % Calculate proxy dynamical dependence of projection L for
 % innovations-form state-space model with parameters A,C,K,

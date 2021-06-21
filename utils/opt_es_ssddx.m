@@ -8,7 +8,7 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ssddx(CAK,P0,maxiters,si
 
 % Calculate proxy dynamical dependence of initial projection
 
-dopt = ssddx(Lopt,Mopt,CAK);
+dopt = cak2ddx(Lopt,Mopt,CAK);
 
 if hist
 	dhist = nan(maxiters,1);
@@ -28,7 +28,7 @@ for iters = 2:maxiters
 
 	% Calculate proxy dynamical dependence of mutated projection
 
-	dtry = ssddx(Ltry,Mtry,CAK);
+	dtry = cak2ddx(Ltry,Mtry,CAK);
 
 	% If dynamical dependence smaller, accept mutant
 

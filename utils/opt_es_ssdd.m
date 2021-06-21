@@ -8,7 +8,7 @@ Lopt = orthonormalise(P0);
 
 % Calculate dynamical dependence of initial projection
 
-dopt = ssdd(Lopt,A,C,K);
+dopt = iss2dd(Lopt,A,C,K);
 
 if hist
 	dhist = nan(maxiters,1);
@@ -28,7 +28,7 @@ for iters = 2:maxiters
 
 	% Calculate dynamical dependence of mutated projection
 
-	dtry = ssdd(Ltry,A,C,K);
+	dtry = iss2dd(Ltry,A,C,K);
 
 	% If dynamical dependence smaller, accept mutant
 

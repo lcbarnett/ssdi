@@ -22,7 +22,7 @@ for i = 1:n
 	Gxx = G(i,i,1:p);
 	Ayx = tsolve(Gxx(:)',Gyx)';
 	Vyyx = G0yy-Ayx*Gyx;
-	Hyyx(i) = logd(Vyyx);
+	Hyyx(i) = logdet(Vyyx);
 
 end
 
@@ -30,16 +30,7 @@ end
 if rep < 0  || rep > 1e-08 % DARE failed
 	Hyy = NaN;
 else
-	Hyy = logd(Vyy);
+	Hyy = logdet(Vyy);
 end
 
 CE = Hyy-sum(Hyyx);
-
-function LD = logd(V)
-
-[L,flag] = chol(V);
-if flag == 0 % symmetric, positive-definite
-	LD = 2*sum(log(diag(L)));
-else
-	LD = NaN;
-end

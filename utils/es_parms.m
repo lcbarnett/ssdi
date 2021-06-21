@@ -1,4 +1,4 @@
-function [ifac,nfac] = es1p1_facs(rule,dim)
+function [ifac,nfac] = es_parms(rule,dim)
 
 % Set 1+1 evolutionary strategy parameters
 

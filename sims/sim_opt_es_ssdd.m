@@ -54,27 +54,27 @@ V = eye(n); % residuals covariance is decorrelated and normalised to unity
 if varmod
 	ARA = var_rand(G,r,rho,w);
 	[A,C,K] = var_to_ss(ARA);
-	gc = var_to_pwcgc(ARA,V);
+	gc = var_to_pwcgc(ARA,V);   % causal graph
 else
 	[A,C,K] = iss_rand(n,r,rho);
-	gc = ss_to_pwcgc(A,C,K,V);
+	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
 end
 rng_restore(mrstate);
 
-% Calculate CAK sequence for pre-optimisation
-
-CAK = CAK_seq(A,C,K);
-
-% Calculate causal graph, and display
+% Display causal graph
 
 eweight = gc/nanmax(gc(:));
 gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 
+% Calculate CAK sequence for pre-optimisation
+
+CAK = iss2cak(A,C,K);
+
 % Set 1+1 evolutionary strategy parameters
 
 algo = '1+1 ES';
-[ifac,nfac] = es1p1_facs(esrule,m*(n-m));
+[ifac,nfac] = es_parms(esrule,m*(n-m));
 
 irstate = rng_seed(iseed);
 
@@ -86,13 +86,13 @@ if nnorm > 0
 	D = zeros(nnorm,1);
 	for k = 1:nnorm
 		[Lk,Mk] = orthonormalise(L(:,:,k));
-		D(k) = ssddx(Lk,Mk,CAK);
+		D(k) = cak2ddx(Lk,Mk,CAK);
 	end
 	ddpmean = mean(D);
 	fprintf('dd proxy mean = %g : ',ddpmean);
 	for k = 1:nnorm
 		Lk = orthonormalise(L(:,:,k));
-		D(k) = ssdd(Lk,A,C,K);
+		D(k) = iss2dd(Lk,A,C,K);
 	end
 	ddnmean = mean(D);
 	fprintf('dd mean = %g\n\n',ddnmean);
