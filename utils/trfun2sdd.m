@@ -12,5 +12,5 @@ LTL = L*L';
 for k = 1:h % over [0,pi]
 	LHk = L'*H(:,:,k);
 	LHLTk = LHk*L;
-    d(k) = logd(LHk*LHk') - logd(LHLTk*LHLTk')
+    d(k) = logdet(LHk*LHk') - logdet(LHLTk*LHLTk');
 end
