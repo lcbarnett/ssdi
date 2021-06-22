@@ -11,7 +11,7 @@ if ~exist('rho',     'var'), rho     = 0.9;       end % spectral norm (< 1)
 if ~exist('fres',    'var'), fres    = [];        end % frequency resolution (empty for auto)
 if ~exist('mseed',   'var'), mseed   = 0;         end % model random seed (0 to use current rng state)
 if ~exist('iseed',   'var'), iseed   = 0;         end % initialisation random seed (0 to use current rng state)
-if ~exist('gpterm',  'var'), gpterm  = 'x-pdf';   end % Gnuplot terminal
+if ~exist('nsamps',  'var'), nsamps  = 1000;      end % number of samples
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -34,29 +34,27 @@ fprintf('Using frequency resolution %d\n\n',fres);
 
 H = ss2trfun(A,C,K,fres);
 
-% Random projection
+% Random projections
 
 rstate = rng_seed(iseed);
-L = randn(n,m);
+L = randn(n,m,nsamps);
 rng_restore(rstate);
+for k = 1:nsamps
+	L(:,:,k) = orthonormalise(L(:,:,k));
+end
 
-L = orthonormalise(randn(n,m));
+D1 = zeros(nsamps,1);
+ptic
+for k = 1:nsamps
+	D1(k) = iss2dd(L(:,:,k),A,C,K);
+end
+ptoc
 
-% Time-domain DD
+D2 = zeros(nsamps,1);
+ptic
+for k = 1:nsamps
+	D2(k) = trapz(trfun2sdd(L(:,:,k),H))/fres;
+end
+ptoc
 
-D = iss2dd(L,A,C,K);
-
-% Frequency-domain (spectral) DD
-
-d = trfun2sdd(L,H);
-
-% Plot
-
-f = linspace(0,pi,fres+1)';
-gp_qplot(f,d,[],'unset key\nset title "Spectral dynamical dependence\nset xlabel "Angular frequency"\nset ylabel "Dynamical dependence" rot\nset xr [0:pi]',gpterm);
-
-% Check that spectral DD integrates to time-domain dd
-
-D1 = trapz(d)/fres;
-
-fprintf('\nIntegration check: absolute difference = %e\n',maxabs(D-D1));
+fprintf('\nmax absolute difference = %e\n',maxabs(D1-D2));

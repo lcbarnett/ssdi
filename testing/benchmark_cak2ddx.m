@@ -55,4 +55,4 @@ for k = 1:nsamps
 end
 ptoc
 
-abs(mean(D1)- mean(D2))
+fprintf('\nmax absolute difference = %e\n',maxabs(D1-D2));
