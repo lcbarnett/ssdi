@@ -85,8 +85,8 @@ if nnorm > 0
 	L = randn(n,m,nnorm);
 	D = zeros(nnorm,1);
 	for k = 1:nnorm
-		[Lk,Mk] = orthonormalise(L(:,:,k));
-		D(k) = cak2ddx(Lk,Mk,CAK);
+		Lk = orthonormalise(L(:,:,k));
+		D(k) = cak2ddx(Lk,CAK);
 	end
 	ddpmean = mean(D);
 	fprintf('dd proxy mean = %g : ',ddpmean);
@@ -160,7 +160,7 @@ else
 end
 fprintf('*** saving workspace in ''%s''... ',wsfile);
 save(wsfile);
-fprintf('\ndone\n');
+fprintf('done\n');
 
 % Plot optimisation histories
 

@@ -4,11 +4,11 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ssddx(CAK,P0,maxiters,si
 
 % Orthonormalise initial projection
 
-[Lopt,Mopt] = orthonormalise(P0);
+Lopt = orthonormalise(P0);
 
 % Calculate proxy dynamical dependence of initial projection
 
-dopt = cak2ddx(Lopt,Mopt,CAK);
+dopt = cak2ddx(Lopt,CAK);
 
 if hist
 	dhist = nan(maxiters,1);
@@ -24,11 +24,11 @@ for iters = 2:maxiters
 
 	% "Mutate" projection and orthonormalise
 
-	[Ltry,Mtry] = orthonormalise(Lopt + sig*randn(n,m));
+	Ltry = orthonormalise(Lopt + sig*randn(n,m));
 
 	% Calculate proxy dynamical dependence of mutated projection
 
-	dtry = cak2ddx(Ltry,Mtry,CAK);
+	dtry = cak2ddx(Ltry,CAK);
 
 	% If dynamical dependence smaller, accept mutant
 
