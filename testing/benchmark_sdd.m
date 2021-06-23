@@ -30,6 +30,10 @@ if isempty(fres)
 end
 fprintf('Using frequency resolution %d\n\n',fres);
 
+% Calculate CAK sequence for pre-optimisation
+
+CAK = iss2cak(A,C,K);
+
 % Calculate transfer function
 
 H = ss2trfun(A,C,K,fres);
@@ -54,6 +58,13 @@ D2 = zeros(nsamps,1);
 ptic
 for k = 1:nsamps
 	D2(k) = trapz(trfun2sdd(L(:,:,k),H))/fres;
+end
+ptoc
+
+DX = zeros(nsamps,1);
+ptic
+for k = 1:nsamps
+	DX(k) = cak2ddx(L(:,:,k),CAK);
 end
 ptoc
 
