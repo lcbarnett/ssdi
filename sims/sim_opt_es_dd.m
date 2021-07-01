@@ -26,8 +26,9 @@ if ~exist('mseed',   'var'), mseed   = 0;         end % model random seed (0 to 
 if ~exist('sig0',    'var'), sig0    = 0.1;       end % (initial) step size
 if ~exist('esrule',  'var'), esrule  = 1/5;       end % evolutionary strategy adaptation rule
 if ~exist('estol',   'var'), estol   = 1e-8;      end % evolutionary strategy convergence tolerance
-if ~exist('niters',  'var'), niters  = 1000;      end % iterations
-if ~exist('piters',  'var'), piters  = 10000;     end % pre-optimisation iterations
+if ~exist('piters',  'var'), piters  = 10000;     end % pre-optimisation 1 iterations
+if ~exist('siters',  'var'), siters  = 1000;      end % pre-optimisation 2 iterations
+if ~exist('niters',  'var'), niters  = 100;       end % iterations
 if ~exist('nruns',   'var'), nruns   = 10;        end % runs (restarts)
 if ~exist('nnorm',   'var'), nnorm   = 1000;      end % normalisation projections
 if ~exist('hist',    'var'), hist    = true;      end % calculate optimisation history?
@@ -47,16 +48,24 @@ if ~exist('gpplot',  'var'), gpplot  = 2;         end % Gnuplot display? (0 - ge
 
 scriptname = mfilename;
 
-% Generate random model
+% Generate random VAR or ISS model
 
 mrstate = rng_seed(mseed);
 V = eye(n); % residuals covariance is decorrelated and normalised to unity
 if varmod
 	ARA = var_rand(G,r,rho,w);
 	[A,C,K] = var_to_ss(ARA);
+	CAK = ARA;                  % CAK sequence for pre-optimisation
+	info = var_info(ARA,V);     % VAR information
+	fres = info.fres;           % frequency resolution
+	H = var2trfun(ARA,fres);    % transfer function
 	gc = var_to_pwcgc(ARA,V);   % causal graph
 else
 	[A,C,K] = iss_rand(n,r,rho);
+	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
+	info = ss_info(A,C,K,V);    % SS information
+	fres = info.fres;           % frequency resolution
+	H = ss2trfun(A,C,K,fres);   % transfer function
 	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
 end
 rng_restore(mrstate);
@@ -66,10 +75,6 @@ rng_restore(mrstate);
 eweight = gc/nanmax(gc(:));
 gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
-
-% Calculate CAK sequence for pre-optimisation
-
-CAK = iss2cak(A,C,K);
 
 % Set 1+1 evolutionary strategy parameters
 
@@ -89,24 +94,28 @@ if nnorm > 0
 		D(k) = cak2ddx(Lk,CAK);
 	end
 	ddpmean = mean(D);
-	fprintf('dd proxy mean = %g : ',ddpmean);
+	fprintf('dd proxy mean    = %g\n',ddpmean);
+	for k = 1:nnorm
+		Lk = orthonormalise(L(:,:,k));
+		D(k) = trfun2dd(Lk,H);
+	end
+	ddsmean = mean(D);
+	fprintf('dd spectral mean = %g\n',ddsmean);
 	for k = 1:nnorm
 		Lk = orthonormalise(L(:,:,k));
 		D(k) = iss2dd(Lk,A,C,K);
 	end
 	ddnmean = mean(D);
-	fprintf('dd mean = %g\n\n',ddnmean);
+	fprintf('dd mean          = %g\n\n',ddnmean);
 end
 
-% Initial linear projections
-
-P0 = randn(n,m,nruns);
-
-rng_restore(irstate);
+% Initialise optimisation
 
 iopt = zeros(1,nruns);
 dopt = zeros(1,nruns);
-Lopt = zeros(n,m,nruns);
+Lopt = randn(n,m,nruns); % initial random linear projections
+
+rng_restore(irstate);
 
 if hist
 	dhistp = nan(piters,nruns);
@@ -116,21 +125,36 @@ end
 orstate = rng_seed(oseed);
 for k = 1:nruns
 
-	fprintf('run %2d of %2d ... ',k,nruns);
+	fprintf('run %2d of %2d\n',k,nruns);
 
-	% pre-optimisation
+	sigk = sig0;
 
-	[doptk,P0(:,:,k),converged,sigk,ioptk,dhistpk] = opt_es_ssddx(CAK,P0(:,:,k),piters,sig0,ifac,nfac,estol,hist);
-	if hist, dhistp(:,k) = dhistpk; end
-	fprintf('dopt = %.4e : sig = %.4e : ',doptk,sigk);
-	if converged, fprintf('preopt converged in %d iterations : ',ioptk); else, fprintf('preopt unconverged : '); end
+	% pre-optimisation 1
+
+	[doptk,Lopt(:,:,k),converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Lopt(:,:,k),piters,sigk,ifac,nfac,estol,hist);
+	if hist, dhistp(:,k) = dhistk; end
+	fprintf('\tpreopt 1     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged, fprintf('converged  '); else, fprintf('unconverged'); end
+	fprintf(' in %6d iterations\n',ioptk);
+
+	% pre-optimisation 2
+
+	[doptk,Lopt(:,:,k),converged,sigk,ioptk,dhistk] = opt_es_dds(H,Lopt(:,:,k),siters,sigk,ifac,nfac,estol,hist);
+	if hist, dhists(:,k) = dhistk; end
+	fprintf('\tpreopt 2     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged, fprintf('converged  '); else, fprintf('unconverged'); end
+	fprintf(' in %6d iterations\n',ioptk);
 
 	% optimisation
 
-	[dopt(k),Lopt(:,:,k),converged,sig,iopt(k),dhistnk] = opt_es_ssdd(A,C,K,P0(:,:,k),niters,sig0,ifac,nfac,estol,hist);
-	if hist, dhistn(:,k) = dhistnk; end
-	fprintf('dopt = %.4e : sig = %.4e : ',dopt(k),sig);
-	if converged, fprintf('converged in %d iterations\n',iopt(k)); else, fprintf('unconverged\n'); end
+	[doptk,Lopt(:,:,k),converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Lopt(:,:,k),niters,sigk,ifac,nfac,estol,hist);
+	if hist, dhistn(:,k) = dhistk; end
+	fprintf('\toptimisation : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged, fprintf('converged  '); else, fprintf('unconverged'); end
+	fprintf(' in %6d iterations\n',ioptk);
+
+	dopt(k) = doptk;
+	iopt(k) = ioptk;
 
 end
 rng_restore(orstate);
@@ -167,11 +191,12 @@ fprintf('done\n');
 if hist
 	if nnorm > 0
 		dhistp = dhistp/ddpmean;
+		dhists = dhists/ddsmean;
 		dhistn = dhistn/ddnmean;
 	end
 	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
-	gp_opthist(dhistp,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gp_opthist(dhistp,dhists,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances

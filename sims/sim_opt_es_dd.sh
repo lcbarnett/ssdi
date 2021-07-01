@@ -35,7 +35,9 @@ do
         G      = $net;\
         r      = 16;\
         m      = $m;\
-        niters = 10000;\
+        piters = 10000;\
+        siters = 1000;\
+        niters = 100;\
         nruns  = 100;\
         hist   = false;\
         gvdisp = false;\
@@ -43,7 +45,7 @@ do
         mseed  = 1234;\
         iseed  = 5678;\
         oseed  = 9012;\
-        sim_opt_es_ssdd;\
+        sim_opt_es_dd;\
         quit"
 
     # run Matlab as background job

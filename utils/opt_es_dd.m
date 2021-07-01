@@ -1,4 +1,4 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ssdd(A,C,K,P0,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dd(A,C,K,P0,maxiters,sig,ifac,nfac,tol,hist)
 
 [n,m] = size(P0);
 

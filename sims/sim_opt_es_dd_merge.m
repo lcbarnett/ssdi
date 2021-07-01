@@ -2,7 +2,7 @@
 %
 % probably
 %
-% mergeroot = 'sim_opt_es_ssdd_nohist';
+% mergeroot = 'sim_opt_es_dd_nohist';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

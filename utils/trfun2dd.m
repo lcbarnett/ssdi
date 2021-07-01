@@ -1,4 +1,4 @@
-function d = trfun2sdd(L,H)
+function [D,d] = trfun2dd(L,H)
 
 % Calculate spectral dynamical dependence of projection L
 % from transfer function H.
@@ -14,3 +14,5 @@ for k = 1:h % over [0,pi]
 	LHLTk = LHk*L;
     d(k) = logdet(LHk*LHk') - logdet(LHLTk*LHLTk');
 end
+
+D = trapz(d)/(h-1); % integrate frequency-domain DD to get time-domain DD

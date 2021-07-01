@@ -1,10 +1,14 @@
 function D = cak2ddx(L,CAK)
 
-% Calculate proxy dynamical dependence of projection L for
-% innovations-form state-space model with parameters A,C,K,
-% for preoptimisation
+% Calculate proxy dynamical dependence of projection L for preoptimisation.
 %
-% CAK_k, k = 1,...,r is the sequence of m x (n-m) matrices CA^{k-1}K
+% For an innovations-form state-space model with parameters (A,C,K)
+%
+%     CAK_k, k = 1,...,r is the sequence of m x (n-m) matrices CA^{k-1}K
+%
+% where r is the ISS model order; see iss2cak.m.
+%
+% For a VAR model with coefficients sequence A, we may supply simply CAK = A.
 %
 % NOTE 1: assumes uncorrelated residuals
 % NOTE 2: projection L orthogonal!!!
