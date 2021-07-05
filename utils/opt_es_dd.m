@@ -1,10 +1,11 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dd(A,C,K,P0,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dd(A,C,K,Lopt,maxiters,sig,ifac,nfac,tol,hist)
 
-[n,m] = size(P0);
+% Assumptions
+%
+% 1 - Lopt is orthonormal
+% 2 - Residuals covariance matrix is identity
 
-% Orthonormalise initial projection
-
-Lopt = orthonormalise(P0);
+[n,m] = size(Lopt);
 
 % Calculate dynamical dependence of initial projection
 

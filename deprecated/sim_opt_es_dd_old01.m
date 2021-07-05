@@ -26,13 +26,13 @@ if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 t
 if ~exist('sig0',     'var'), sig0     = 0.1;       end % (initial) step size
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolutionary strategy adaptation rule
 if ~exist('estol',    'var'), estol    = 1e-8;      end % evolutionary strategy convergence tolerance
-if ~exist('fres',     'var'), fres     = [];        end % frequency resolution (empty for automatic)
 if ~exist('piters',   'var'), piters   = 10000;     end % pre-optimisation 1 iterations
 if ~exist('siters',   'var'), siters   = 1000;      end % pre-optimisation 2 iterations
 if ~exist('niters',   'var'), niters   = 100;       end % iterations
 if ~exist('nruns',    'var'), nruns    = 10;        end % runs (restarts)
-if ~exist('nsics',    'var'), nsics    = 100;       end % number of samples for spectral integration check
 if ~exist('sigreset', 'var'), sigreset = false;     end % reset step size between optimisations?
+if ~exist('nnorm',    'var'), nnorm    = 1000;      end % normalisation projections
+if ~exist('ddscheck', 'var'), ddscheck = 100;       end % iterations for spectral integration check
 if ~exist('hist',     'var'), hist     = true;      end % calculate optimisation history?
 if ~exist('iseed',    'var'), iseed    = 0;         end % initialisation random seed (0 to use current rng state)
 if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random seed (0 to use current rng state)
@@ -52,25 +52,25 @@ scriptname = mfilename;
 
 % Generate random VAR or ISS model
 
-rstate = rng_seed(mseed);
+mrstate = rng_seed(mseed);
 V = eye(n); % residuals covariance is decorrelated and normalised to unity
 if varmod
 	ARA = var_rand(G,r,rho,w);
 	[A,C,K] = var_to_ss(ARA);
 	CAK = ARA;                  % CAK sequence for pre-optimisation
 	info = var_info(ARA,V);     % VAR information
-	if isempty(fres), fres = info.fres; end % frequency resolution
+	fres = info.fres;           % frequency resolution
 	H = var2trfun(ARA,fres);    % transfer function
 	gc = var_to_pwcgc(ARA,V);   % causal graph
 else
 	[A,C,K] = iss_rand(n,r,rho);
 	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
 	info = ss_info(A,C,K,V);    % SS information
-	if isempty(fres), fres = info.fres; end % frequency resolution
+	fres = info.fres;           % frequency resolution
 	H = ss2trfun(A,C,K,fres);   % transfer function
 	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
 end
-rng_restore(rstate);
+rng_restore(mrstate);
 
 % Display causal graph
 
@@ -83,23 +83,30 @@ wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 algo = '1+1 ES';
 [ifac,nfac] = es_parms(esrule,m*(n-m));
 
-rstate = rng_seed(iseed);
+irstate = rng_seed(iseed);
 
-% Spectral integration check
+% Normalisation factors
 
-fprintf('\nSpectral DD integration check (frequency resolution = %d) ... ',fres);
-L = rand_orthonormal(n,m,nsics); % (orthonormalised) random linear projections
-D1 = zeros(nsics,1);
-for k = 1:nsics
-	D1(k) = iss2dd(L(:,:,k),A,C,K);
+if nnorm > 0
+	fprintf('\n');
+	L = rand_orthonormal(n,m,nnorm);
+	D = zeros(nnorm,1);
+	for k = 1:nnorm
+		D(k) = cak2ddx(L(:,:,k),CAK);
+	end
+	ddpmean = mean(D);
+	fprintf('dd proxy mean    = %g\n',ddpmean);
+	for k = 1:nnorm
+		D(k) = trfun2dd(L(:,:,k),H);
+	end
+	ddsmean = mean(D);
+	fprintf('dd spectral mean = %g\n',ddsmean);
+	for k = 1:nnorm
+		D(k) = iss2dd(L(:,:,k),A,C,K);
+	end
+	ddnmean = mean(D);
+	fprintf('dd mean          = %g\n\n',ddnmean);
 end
-D2 = zeros(nsics,1);
-for k = 1:nsics
-	D2(k) = trfun2dd(L(:,:,k),H);
-end
-mad = maxabs(D1-D2);
-fprintf('max. abs. diff = %e\n\n',mad);
-clear L D1 D2
 
 % Initialise optimisation
 
@@ -107,7 +114,7 @@ iopt = zeros(1,nruns);
 dopt = zeros(1,nruns);
 Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear projections
 
-rng_restore(rstate);
+rng_restore(irstate);
 
 if hist
 	dhistp = nan(piters,nruns);
@@ -115,7 +122,7 @@ if hist
 	dhistn = nan(niters,nruns);
 end
 
-rstate = rng_seed(oseed);
+orstate = rng_seed(oseed);
 for k = 1:nruns
 
 	fprintf('run %2d of %2d\n',k,nruns);
@@ -162,7 +169,7 @@ for k = 1:nruns
 	iopt(k) = ioptk;
 
 end
-rng_restore(rstate);
+rng_restore(orstate);
 
 % Sort (local) optima by dynamical dependence
 
@@ -180,7 +187,7 @@ Loptd = gmetrics(Lopt);
 
 % Save workspace
 
-clear k doptk Loptk sigk ioptk dhistk converged
+clear k
 if hist
 	wsfile = fullfile(resdir,[scriptname '_hist' rid '.mat']);
 else
@@ -194,6 +201,11 @@ fprintf('done\n');
 % Plot optimisation histories
 
 if hist
+	if nnorm > 0
+		dhistp = dhistp/ddpmean;
+		dhists = dhists/ddsmean;
+		dhistn = dhistn/ddnmean;
+	end
 	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
 	gp_opthist(dhistp,dhists,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);

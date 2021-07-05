@@ -8,11 +8,10 @@ function [D,d] = trfun2dd(L,H)
 
 h = size(H,3);
 d = zeros(h,1);
-LTL = L*L';
+LT = L';
 for k = 1:h % over [0,pi]
-	LHk = L'*H(:,:,k);
-	LHLTk = LHk*L;
-    d(k) = logdet(LHk*LHk') - logdet(LHLTk*LHLTk');
+	LHk = LT*H(:,:,k);
+    d(k) = logdet(LHk*LHk');
 end
 
 D = trapz(d)/(h-1); % integrate frequency-domain DD to get time-domain DD
