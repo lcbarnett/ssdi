@@ -12,8 +12,9 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dd(A,C,K,Lopt,maxiters,s
 dopt = iss2dd(Lopt,A,C,K);
 
 if hist
-	dhist = nan(maxiters,1);
+	dhist = nan(maxiters,2);
 	dhist(1) = dopt;
+	dhist(2) = sig;
 else
 	dhist = [];
 end
@@ -42,7 +43,8 @@ for iters = 2:maxiters
 	end
 
 	if hist
-		dhist(iters) = dopt;
+		dhist(iters,1) = dopt;
+		dhist(iters,2) = sig;
 	end
 
 	% Test convergence

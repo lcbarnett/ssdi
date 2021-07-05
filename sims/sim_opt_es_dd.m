@@ -23,16 +23,16 @@ end
 
 if ~exist('rho',      'var'), rho      = 0.9;       end % spectral norm (< 1)
 if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 to use current rng state)
-if ~exist('sig0',     'var'), sig0     = 0.1;       end % (initial) step size
+if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
+if ~exist('osig0',    'var'), osig0    = 0.01;      end % optimisation initial step size
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolutionary strategy adaptation rule
 if ~exist('estol',    'var'), estol    = 1e-8;      end % evolutionary strategy convergence tolerance
 if ~exist('fres',     'var'), fres     = [];        end % frequency resolution (empty for automatic)
-if ~exist('piters',   'var'), piters   = 10000;     end % pre-optimisation 1 iterations
-if ~exist('siters',   'var'), siters   = 1000;      end % pre-optimisation 2 iterations
-if ~exist('niters',   'var'), niters   = 100;       end % iterations
-if ~exist('nruns',    'var'), nruns    = 10;        end % runs (restarts)
 if ~exist('nsics',    'var'), nsics    = 100;       end % number of samples for spectral integration check
-if ~exist('sigreset', 'var'), sigreset = false;     end % reset step size between optimisations?
+if ~exist('specopt',  'var'), specopt  = true;      end % use spectral DD method? (Usually faster)
+if ~exist('npiters',  'var'), npiters  = 100000;    end % pre-optimisation iterations
+if ~exist('noiters',  'var'), noiters  = 10000;     end % optimisation iterations
+if ~exist('nruns',    'var'), nruns    = 10;        end % runs (restarts)
 if ~exist('hist',     'var'), hist     = true;      end % calculate optimisation history?
 if ~exist('iseed',    'var'), iseed    = 0;         end % initialisation random seed (0 to use current rng state)
 if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random seed (0 to use current rng state)
@@ -42,7 +42,6 @@ if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random se
 if ~exist('gvprog',   'var'), gvprog   = 'dot';     end % GraphViz program/format (also try 'neato', 'fdp')
 if ~exist('gvdisp',   'var'), gvdisp   = true;      end % GraphViz display? (else just generate graph files)
 if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';   end % Gnuplot terminal
-if ~exist('gpscale',  'var'), gpscale  = [Inf 0.8]; end % Gnuplot scale factor(s)
 if ~exist('gpfsize',  'var'), gpfsize  = 14;        end % Gnuplot font size
 if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
 
@@ -99,6 +98,7 @@ for k = 1:nsics
 end
 mad = maxabs(D1-D2);
 fprintf('max. abs. diff = %e\n\n',mad);
+if mad > 1e-12, fprintf(2,'WARNING: spectral method may be inaccurate!\n\n'); end
 clear L D1 D2
 
 % Initialise optimisation
@@ -110,9 +110,8 @@ Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear pr
 rng_restore(rstate);
 
 if hist
-	dhistp = nan(piters,nruns);
-	dhists = nan(siters,nruns);
-	dhistn = nan(niters,nruns);
+	dhistp = nan(npiters,2,nruns);
+	dhisto = nan(noiters,2,nruns);
 end
 
 rstate = rng_seed(oseed);
@@ -121,37 +120,34 @@ for k = 1:nruns
 	fprintf('run %2d of %2d\n',k,nruns);
 
 	Loptk = Lopt(:,:,k);
-	sigk = sig0;
 
-	if piters > 0 % optimisation using "proxy" DD
+	% Pre-optimisation using "proxy" DD
 
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Loptk,piters,sigk,ifac,nfac,estol,hist);
-		if hist, dhistp(:,k) = dhistk; end
-		fprintf('\topt 1 : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+	sigk = psig0;
+
+	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Loptk,npiters,sigk,ifac,nfac,estol,hist);
+	if hist, dhistp(:,:,k) = dhistk; end
+	fprintf('\tpre-opt : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged, fprintf('converged  '); else, fprintf('unconverged'); end
+	fprintf(' in %6d iterations\n',ioptk);
+
+	% Optimisation
+
+	sigk = osig0;
+
+	if specopt % use integrated spectral method (usually faster)
+
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		if hist, dhisto(:,:,k) = dhistk; end
+		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged, fprintf('converged  '); else, fprintf('unconverged'); end
 		fprintf(' in %6d iterations\n',ioptk);
 
-	end
+	else       % use state-space (DARE) method (usually slower)
 
-	if siters > 0 % optimisation using integrated spectral DD
-
-		if sigreset, sigk = sig0; end
-
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,siters,sigk,ifac,nfac,estol,hist);
-		if hist, dhists(:,k) = dhistk; end
-		fprintf('\topt 2 : dopt = %.4e : sig = %.4e : ',doptk,sigk);
-		if converged, fprintf('converged  '); else, fprintf('unconverged'); end
-		fprintf(' in %6d iterations\n',ioptk);
-
-	end
-
-	if niters > 0 % optimisation using state-space DD (DARE)
-
-		if sigreset, sigk = sig0; end
-
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,niters,sigk,ifac,nfac,estol,hist);
-		if hist, dhistn(:,k) = dhistk; end
-		fprintf('\topt 3 : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		if hist, dhisto(:,:,k) = dhistk; end
+		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged, fprintf('converged  '); else, fprintf('unconverged'); end
 		fprintf(' in %6d iterations\n',ioptk);
 
@@ -184,7 +180,6 @@ clear k doptk Loptk sigk ioptk dhistk converged
 if hist
 	wsfile = fullfile(resdir,[scriptname '_hist' rid '.mat']);
 else
-	clear dhistp dhistn
 	wsfile = fullfile(resdir,[scriptname '_nohist' rid '.mat']);
 end
 fprintf('*** saving workspace in ''%s''... ',wsfile);
@@ -196,13 +191,15 @@ fprintf('done\n');
 if hist
 	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
-	gp_opthist(dhistp,dhists,dhistn,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gpscale = [Inf,1.5];
+	gp_opthist(dhistp,dhisto,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances
 
 gptitle = sprintf('Inter-optimum distance (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 gpstem = fullfile(resdir,[scriptname '_iodist' rid]);
+gpscale = [1.2,1.1];
 gp_iodist(Loptd,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 
 % To display axis projection-weighted graph, e.g.:
