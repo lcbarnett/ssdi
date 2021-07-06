@@ -7,9 +7,20 @@
 if ~exist('resdir', 'var'), resdir = tempdir; end % results directory
 if ~exist('rid',    'var'), rid    = '';      end % run ID tag
 
+if exist('G','var')
+	varmod = true;
+	n = size(G,1); % microscopic state dimension
+	if ~exist('r','var'), r = n; end % var model order
+	if ~exist('w','var'), w = 1; end % AR coefficients decay parameter
+else
+	varmod = false;
+	if ~exist('n','var'), n = 7;   end % microscopic state dimension
+	if ~exist('r','var'), r = 3*n; end % hidden state dimension
+	G = ones(n); % fully-connected
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('gseed',    'var'), gseed    = 0;         end % graph random seed (0 to use current rng state)
 if ~exist('rho',      'var'), rho      = 0.9;       end % spectral norm (< 1)
 if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 to use current rng state)
 if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
@@ -37,22 +48,6 @@ if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scriptname = mfilename;
-
-% Connectivity graph
-
-rstate = rng_seed(gseed);
-if exist('G','var')
-	varmod = true;
-	n = size(G,1); % microscopic state dimension
-	if ~exist('r','var'), r = n; end % var model order
-	if ~exist('w','var'), w = 1; end % AR coefficients decay parameter
-else
-	varmod = false;
-	if ~exist('n','var'), n = 7;   end % microscopic state dimension
-	if ~exist('r','var'), r = 3*n; end % hidden state dimension
-	G = ones(n); % fully-connected
-end
-rng_restore(rstate);
 
 % Generate random VAR or ISS model
 
@@ -82,10 +77,10 @@ eweight = gc/nanmax(gc(:));
 gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 
-% Set 1+1 evolutionary strategy parameters
+% Set 1+1 evolutionary strategy with evolutimg step-size parameters
 
-algo = '1+1 ES';
-[ifac,nfac] = es_parms(esrule,m*(n-m));
+algo = '1+1 ESS';
+ssig = 0.5/sqrt(2*m*(n-m));
 
 rstate = rng_seed(iseed);
 
@@ -130,7 +125,7 @@ for k = 1:nruns
 
 	sigk = psig0;
 
-	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Loptk,npiters,sigk,ifac,nfac,estol,hist);
+	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddxa(CAK,Loptk,npiters,sigk,ssig,estol,hist);
 	if hist, dhistp(:,:,k) = dhistk; end
 	fprintf('\tpre-opt : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged, fprintf('converged  '); else, fprintf('unconverged'); end
@@ -142,7 +137,7 @@ for k = 1:nruns
 
 	if specopt % use integrated spectral method (usually faster)
 
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddsa(H,Loptk,noiters,sigk,ssig,estol,hist);
 		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged, fprintf('converged  '); else, fprintf('unconverged'); end
@@ -150,7 +145,7 @@ for k = 1:nruns
 
 	else       % use state-space (DARE) method (usually slower)
 
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dda(A,C,K,Loptk,noiters,sigk,ssig,estol,hist);
 		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged, fprintf('converged  '); else, fprintf('unconverged'); end
