@@ -11,7 +11,6 @@ if ~exist('rid',    'var'), rid    = '';      end % run ID tag
 
 if ~exist('gseed',    'var'), gseed    = 0;         end % graph random seed (0 to use current rng state)
 if ~exist('rho',      'var'), rho      = 0.9;       end % spectral norm (< 1)
-if ~exist('rcorr',    'var'), rcorr    = 0;         end % residuals correlation (actually multiinformation); 0 for no correlation
 if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 to use current rng state)
 if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
 if ~exist('osig0',    'var'), osig0    = 0.01;      end % optimisation initial step size
@@ -58,39 +57,22 @@ rng_restore(rstate);
 % Generate random VAR or ISS model
 
 rstate = rng_seed(mseed);
-[V,SQRTV] = corr_rand(n,rcorr); % residuals covariance matrix (rcorr = 0 for identity matrix; i.e., no residuals correlation)
-ISQRTV = inv(SQRTV);
+V = eye(n); % residuals covariance is decorrelated and normalised to unity
 if varmod
 	ARA = var_rand(G,r,rho,w);
-	info = var_info(ARA,V);     % VAR information
-	gc = var_to_pwcgc(ARA,V);   % causal graph
-
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
-
-	for k = 1:r
-		ARA(:,:,k) = ISQRTV*ARA(:,:,k)*SQRTV;
-	end
-	[A,C,K] = var_to_ss(ARA);   % equivalent ISS model
-	V = eye(n);
-
+	[A,C,K] = var_to_ss(ARA);
 	CAK = ARA;                  % CAK sequence for pre-optimisation
+	info = var_info(ARA,V);     % VAR information
 	if isempty(fres), fres = info.fres; end % frequency resolution
 	H = var2trfun(ARA,fres);    % transfer function
+	gc = var_to_pwcgc(ARA,V);   % causal graph
 else
 	[A,C,K] = iss_rand(n,r,rho);
-	info = ss_info(A,C,K,V);    % SS information
-	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
-
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
-
-	% A is unchanged
-	C = ISQRTV*C;
-	K = K*SQRTV;
-	V = eye(n);
-
 	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
+	info = ss_info(A,C,K,V);    % SS information
 	if isempty(fres), fres = info.fres; end % frequency resolution
 	H = ss2trfun(A,C,K,fres);   % transfer function
+	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
 end
 rng_restore(rstate);
 
@@ -182,12 +164,6 @@ for k = 1:nruns
 
 end
 rng_restore(rstate);
-
-% Transform Lopt back to correlated residuals form
-
-for k = 1:nruns
-	Lopt(:,:,k) = ISQRTV'*Lopt(:,:,k);
-end
 
 % Sort (local) optima by dynamical dependence
 
