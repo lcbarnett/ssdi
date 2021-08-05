@@ -5,6 +5,14 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dds(H,Lopt,maxiters,sig,
 % 1 - Lopt is orthonormal
 % 2 - Residuals covariance matrix is identity
 
+if isscalar(tol)
+	stol = tol;
+	dtol = tol;
+else
+	stol = tol(1);
+	dtol = tol(2);
+end
+
 [n,m] = size(Lopt);
 
 % Calculate dynamical dependence of initial projection
@@ -21,7 +29,7 @@ end
 
 % Optimise
 
-converged = false;
+converged = 0;
 for iters = 2:maxiters
 
 	% "Mutate" projection and orthonormalise
@@ -49,8 +57,13 @@ for iters = 2:maxiters
 
 	% Test convergence
 
-	if sig < tol || dopt < tol
-		converged = true;
+	if sig < stol
+		converged = 1;
+		break
+	end
+
+	if dopt < dtol
+		converged = 2;
 		break
 	end
 

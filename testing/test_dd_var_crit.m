@@ -13,6 +13,9 @@ if ~exist('gseed',    'var'), gseed    = 0;         end % graph random seed (0 t
 if ~exist('rho',      'var'), rho      = 0.9;       end % spectral norm (< 1)
 if ~exist('rcorr',    'var'), rcorr    = 0;         end % residuals correlation (actually multiinformation); 0 for no correlation
 if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 to use current rng state)
+if ~exist('ntrials',  'var'), ntrials  = 10;        end % number of trials
+if ~exist('nobs',     'var'), nobs     = 1000;      end % number of observations
+if ~exist('alpha',    'var'), alpha    = 0.05;      end % Significance level for critical value
 if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
 if ~exist('osig0',    'var'), osig0    = 0.01;      end % optimisation initial step size
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolutionary strategy adaptation rule
@@ -42,17 +45,10 @@ scriptname = mfilename;
 % Connectivity graph
 
 rstate = rng_seed(gseed);
-if exist('G','var')
-	varmod = true;
-	n = size(G,1); % microscopic state dimension
-	if ~exist('r','var'), r = n; end % var model order
-	if ~exist('w','var'), w = 1; end % AR coefficients decay parameter
-else
-	varmod = false;
-	if ~exist('n','var'), n = 7;   end % microscopic state dimension
-	if ~exist('r','var'), r = 3*n; end % hidden state dimension
-	G = ones(n); % fully-connected
-end
+varmod = true;
+n = size(G,1); % microscopic state dimension
+if ~exist('p','var'), p = n; end % var model order
+if ~exist('w','var'), w = 1; end % AR coefficients decay parameter
 rng_restore(rstate);
 
 % Generate random VAR or ISS model
@@ -60,38 +56,21 @@ rng_restore(rstate);
 rstate = rng_seed(mseed);
 [V,SQRTV] = corr_rand(n,rcorr); % residuals covariance matrix (rcorr = 0 for identity matrix; i.e., no residuals correlation)
 ISQRTV = SQRTV\eye(n);
-if varmod
-	ARA = var_rand(G,r,rho,w);
-	info = var_info(ARA,V);     % VAR information
-	gc = var_to_pwcgc(ARA,V);   % causal graph
+ARA = var_rand(G,p,rho,w);
+info = var_info(ARA,V);     % VAR information
+gc = var_to_pwcgc(ARA,V);   % causal graph
 
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
+% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
 
-	for k = 1:r
-		ARA(:,:,k) = ISQRTV*ARA(:,:,k)*SQRTV;
-	end
-	[A,C,K] = var_to_ss(ARA);   % equivalent ISS model
-	V = eye(n);
-
-	CAK = ARA;                  % CAK sequence for pre-optimisation
-	if isempty(fres), fres = info.fres; end % frequency resolution
-	H = var2trfun(ARA,fres);    % transfer function
-else
-	[A,C,K] = iss_rand(n,r,rho);
-	info = ss_info(A,C,K,V);    % SS information
-	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
-
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
-
-	% A is unchanged
-	C = ISQRTV*C;
-	K = K*SQRTV;
-	V = eye(n);
-
-	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
-	if isempty(fres), fres = info.fres; end % frequency resolution
-	H = ss2trfun(A,C,K,fres);   % transfer function
+for k = 1:p
+	ARA(:,:,k) = ISQRTV*ARA(:,:,k)*SQRTV;
 end
+[A,C,K] = var_to_ss(ARA);   % equivalent ISS model
+V = eye(n);
+
+CAK = ARA;                  % CAK sequence for pre-optimisation
+if isempty(fres), fres = info.fres; end % frequency resolution
+H = var2trfun(ARA,fres);    % transfer function
 rng_restore(rstate);
 
 % Display causal graph
@@ -104,6 +83,11 @@ wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 
 algo = '1+1 ES';
 [ifac,nfac] = es_parms(esrule,m*(n-m));
+
+enobs = ntrials*(nobs-p);
+df = p*m*(n-m);
+ddcv = chi2inv(1-alpha,df)/enobs;
+fprintf('\nCritical DD value = %g\n',ddcv);
 
 rstate = rng_seed(iseed);
 
@@ -160,7 +144,7 @@ for k = 1:nruns
 
 	if specopt % use integrated spectral method (usually faster)
 
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,noiters,sigk,ifac,nfac,[estol,ddcv],hist);
 		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
@@ -168,7 +152,7 @@ for k = 1:nruns
 
 	else       % use state-space (DARE) method (usually slower)
 
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,noiters,sigk,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,noiters,sigk,ifac,nfac,[estol,ddcv],hist);
 		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
@@ -218,7 +202,7 @@ fprintf('done\n');
 % Plot optimisation histories
 
 if hist
-	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
+	gptitle = sprintf('Optimisation history (%s) : n = %d, p = %d, m = %d',algo,n,p,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
 	gpscale = [Inf,1.5];
 	gp_opthist(dhistp,dhisto,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
@@ -226,7 +210,7 @@ end
 
 % Plot inter-optima subspace distances
 
-gptitle = sprintf('Inter-optimum distance (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
+gptitle = sprintf('Inter-optimum distance (%s) : n = %d, p = %d, m = %d',algo,n,p,m);
 gpstem = fullfile(resdir,[scriptname '_iodist' rid]);
 gpscale = [1.2,1.1];
 gp_iodist(Loptd,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
