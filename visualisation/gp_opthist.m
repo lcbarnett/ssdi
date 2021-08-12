@@ -53,7 +53,7 @@ fprintf(gp,'NaN not\n\n');
 fprintf(gp,'set ylabel "$\\\\sigma$" norot\n');
 fprintf(gp,'set logs y\n\n');
 
-fprintf(gp,'set title "Optimisation 1 - step size"\n');
+fprintf(gp,'set title "Pre-optimisation - step size"\n');
 fprintf(gp,'set xr [1:%g]\n',npiters);
 fprintf(gp,'set yr [*:%g]\n',1.05*ddp2max);
 fprintf(gp,'plot \\\n');
