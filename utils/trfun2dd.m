@@ -11,7 +11,6 @@ d = zeros(h,1);
 LT = L';
 for k = 1:h % over [0,pi]
 	LHk = LT*H(:,:,k);
-    d(k) = logdet(LHk*LHk');
+	d(k) = sum(log(diag(chol(LHk*LHk')))); % (log-determinant)/2
 end
-
-D = trapz(d)/(h-1); % integrate frequency-domain DD to get time-domain DD
+D = sum((d(1:end-1)+d(2:end)))/(h-1); % integrate frequency-domain DD (trapezoidal rule) to get time-domain DD
