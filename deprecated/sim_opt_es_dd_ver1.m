@@ -133,8 +133,8 @@ Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear pr
 rng_restore(rstate);
 
 if hist
-	dhistp = cell(nruns,1);
-	dhisto = cell(nruns,1);
+	dhistp = nan(npiters,2,nruns);
+	dhisto = nan(noiters,2,nruns);
 end
 
 rstate = rng_seed(oseed);
@@ -149,7 +149,7 @@ for k = 1:nruns
 	sigk = psig0;
 
 	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Loptk,npiters,sigk,ifac,nfac,estol,hist);
-	if hist, dhistp{k} = dhistk; end
+	if hist, dhistp(:,:,k) = dhistk; end
 	fprintf('\tpre-opt : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
 	fprintf(' in %6d iterations\n',ioptk);
@@ -161,7 +161,7 @@ for k = 1:nruns
 	if specopt % use integrated spectral method (usually faster)
 
 		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,noiters,sigk,ifac,nfac,estol,hist);
-		if hist, dhisto{k} = dhistk; end
+		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
 		fprintf(' in %6d iterations\n',ioptk);
@@ -169,7 +169,7 @@ for k = 1:nruns
 	else       % use state-space (DARE) method (usually slower)
 
 		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,noiters,sigk,ifac,nfac,estol,hist);
-		if hist, dhisto{k} = dhistk; end
+		if hist, dhisto(:,:,k) = dhistk; end
 		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
 		fprintf(' in %6d iterations\n',ioptk);
@@ -194,10 +194,6 @@ end
 [dopt,sidx] = sort(dopt);
 iopt = iopt(sidx);
 Lopt = Lopt(:,:,sidx);
-if hist
-	dhistp = dhistp(sidx);
-	dhisto = dhisto(sidx);
-end
 fprintf('\noptimal dynamical dependence =\n'); disp(dopt');
 
 nweight = zeros(n,nruns);
@@ -225,7 +221,7 @@ if hist
 	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
 	gpscale = [Inf,1.5];
-	gp_opthist(dhistp,npiters,dhisto,noiters,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gp_opthist(dhistp,dhisto,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances
