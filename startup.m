@@ -46,9 +46,7 @@ gpmat_path = getenv('GPMAT_PATH');
 gvmat_path = getenv('GVMAT_PATH');
 flzc_path  = ''; % don't need this!
 assert(exist(mvgc_path,'dir') == 7,'bad MVGC path: ''%s'' does not exist or is not a directory',mvgc_path);
-cd(mvgc_path);
-startup;
-cd(ssdi_root);
+run(fullfile(mvgc_path,'startup'));
 clear mvgc_path
 
 fprintf('[ssdi startup] Initialised (you may re-run `startup'' at any time)\n');
