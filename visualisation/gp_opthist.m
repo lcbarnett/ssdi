@@ -10,7 +10,7 @@ noruns = length(ddo);
 ddomax = max(cell2mat(ddo));
 ddomin = min(cell2mat(ddo));
 
-[~,gpname] = fileparts(gpstem);
+[~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 gp_write([gpstem '_p'],ddp);
 gp_write([gpstem '_o'],ddo);
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);

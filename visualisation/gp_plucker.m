@@ -11,7 +11,7 @@ for k = 1:nc
 	end
 end
 
-[~,gpname] = fileparts(gpstem);
+[~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 gp_write(gpstem,[(1:nc)' Loptx]);
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
 fprintf(gp,'datfile = "%s.dat"\n\n',gpname);

@@ -8,7 +8,7 @@ precstr = ' %24.16f';
 ncols = 2;
 nrows = ceil(n1/ncols);
 
-[~,gpname] = fileparts(gpstem);
+[~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 gp = gp_open(gpstem,gpterm,[Inf,0.5],gpfsize);
 fprintf(gp,'set size square\n');
 fprintf(gp,'unset key\n');

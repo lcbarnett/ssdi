@@ -4,7 +4,7 @@ function gp_iodist(Loptd,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
 
 nruns = size(Loptd,1);
 
-[~,gpname] = fileparts(gpstem);
+[~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 gp_write(gpstem,[0 1:nruns; (1:nruns)' Loptd]);
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
 fprintf(gp,'datfile = "%s.dat"\n\n',gpname);

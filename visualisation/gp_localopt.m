@@ -10,7 +10,7 @@ for k = 2:nruns+1
 	precstr{k} = ' %24.16f';
 end
 
-[~,gpname] = fileparts(gpstem);
+[~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 gp_write(gpstem,[1:n1;dopt]',precstr);
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
 fprintf(gp,'datfile = "%s.dat"\n\n',gpname);
