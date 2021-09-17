@@ -15,4 +15,4 @@ for k = 1:h % over [0,pi]
 	LHk = LT*Hk;
 	g(:,:,k) = real((LHk*LHk')\LHk*Hk'); % grad/2
 end
-G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)/(h-1); % integrate frequency-domain gradient (trapezoidal rule) to get time-domain gradient
+G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)'/(h-1); % integrate frequency-domain gradient (trapezoidal rule) to get time-domain gradient

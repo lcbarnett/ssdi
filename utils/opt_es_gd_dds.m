@@ -1,8 +1,8 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_gd_dds(H,Lopt,maxiters,sig,ifac,nfac,tol,hist)
+function [d,L,converged,sig,iters,dhist] = opt_es_gd_dds(H,L,maxiters,sig,ifac,nfac,tol,hist)
 
 % Assumptions
 %
-% 1 - Lopt is orthonormal
+% 1 - L is orthonormal
 % 2 - Residuals covariance matrix is identity
 
 if isscalar(tol)
@@ -13,15 +13,15 @@ else
 	dtol = tol(2);
 end
 
-[n,m] = size(Lopt);
+[n,m] = size(L);
 
 % Calculate dynamical dependence of initial projection
 
-dopt = trfun2dd(Lopt,H);
+d = trfun2dd(L,H);
 
 if hist
 	dhist = zeros(maxiters,3);
-	i = 1; dhist(i,:) = [1 dopt sig];
+	i = 1; dhist(i,:) = [1 d sig];
 else
 	dhist = [];
 end
@@ -31,30 +31,26 @@ end
 converged = 0;
 for iters = 2:maxiters
 
+	if hist, i = i+1; dhist(i,:) = [iters d sig]; end
+
 	% Move down gradient and orthonormalise
 
-	Ltry = orthonormalise(Lopt - sig*trfun2ddgrad(L,H));
+	L = orthonormalise(L - sig*trfun2ddgrad(L,H)); % this is not quite correct, but probably the best we can do :-/
 
 	% Calculate dynamical dependence of candidate projection
 
-	dtry = trfun2dd(Ltry,H);
+	dold = d;
+	d = trfun2dd(L,H);
 
-	% If dynamical dependence smaller, accept mutant
+	% If dynamical dependence smaller, increase step size, else decrease
 
-	if dtry < dopt
-		Lopt = Ltry;
-		if hist
-			i = i+1; dhist(i,:) = [iters dopt sig];
-			dopt = dtry;
-			sig  = ifac*sig;
-			i = i+1; dhist(i,:) = [iters dopt sig];
-		else
-			dopt = dtry;
-			sig  = ifac*sig;
-		end
+	if d < dold
+		sig = ifac*sig;
 	else
 		sig = nfac*sig;
 	end
+
+	if hist, i = i+1; dhist(i,:) = [iters d sig]; end
 
 	% Test convergence
 
@@ -63,7 +59,7 @@ for iters = 2:maxiters
 		break
 	end
 
-	if dopt < dtol
+	if d < dtol
 		converged = 2;
 		break
 	end
@@ -71,6 +67,6 @@ for iters = 2:maxiters
 end
 
 if hist
-	i = i+1; dhist(i,:) = [iters dopt sig];
+	i = i+1; dhist(i,:) = [iters d sig];
 	dhist = dhist(1:i,:);
 end

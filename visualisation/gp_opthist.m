@@ -1,67 +1,54 @@
-function gp_opthist(ddp,npiters,ddo,noiters,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
+function gp_opthist(dhist,niters,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
 
 % Plot optimisation histories
 
-npruns = length(ddp);
-ddpmax = max(cell2mat(ddp));
-ddpmin = min(cell2mat(ddp));
+nhists = length(dhist);
 
-noruns = length(ddo);
-ddomax = max(cell2mat(ddo));
-ddomin = min(cell2mat(ddo));
+for h = 1:nhists
+	nruns(h) = length(dhist{h});
+	ddmax{h} = max(cell2mat(dhist{h}));
+	ddmin{h} = min(cell2mat(dhist{h}));
+end
 
 [~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
-gp_write([gpstem '_p'],ddp);
-gp_write([gpstem '_o'],ddo);
+for h = 1:nhists
+	gp_write(sprintf('%s_%d',gpstem,h),dhist{h});
+end
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
-fprintf(gp,'datfilep = "%s.dat"\n\n',[gpname '_p']);
-fprintf(gp,'datfileo = "%s.dat"\n\n',[gpname '_o']);
+for h = 1:nhists
+	fprintf(gp,'datfile_%d = "%s_%d.dat"\n\n',h,gpname,h);
+end
 fprintf(gp,'set key top left Left rev\n');
 fprintf(gp,'set xlabel "iterations"\n');
 fprintf(gp,'set logs x\n');
 fprintf(gp,'set grid\n\n');
-fprintf(gp,'set multiplot title "%s" layout 2,2\n\n',gptitle);
+fprintf(gp,'set multiplot title "%s" layout 2,%d\n\n',gptitle,nhists);
 
 fprintf(gp,'set ylabel "DD" norot\n\n');
-
-fprintf(gp,'set title "Pre-optimisation - dynamical dependence"\n');
-fprintf(gp,'set xr [1:%g]\n',npiters);
-fprintf(gp,'set yr [0:%g]\n',1.05*ddpmax(2));
-fprintf(gp,'plot \\\n');
-for k = 1:npruns
-	fprintf(gp,'datfilep i %d using 1:2 w lines not, \\\n',k-1);
+for h = 1:nhists
+	fprintf(gp,'set title "%s - dynamical dependence"\n',titles{h});
+	fprintf(gp,'set xr [1:%g]\n',niters(h));
+	fprintf(gp,'set yr [0:%g]\n',1.05*ddmax{h}(2));
+	fprintf(gp,'plot \\\n');
+	for k = 1:nruns(h)
+		fprintf(gp,'datfile_%d i %d using 1:2 w lines not, \\\n',h,k-1);
+	end
+	fprintf(gp,'NaN not\n\n');
 end
-fprintf(gp,'NaN not\n\n');
-
-fprintf(gp,'set title "Optimisation - dynamical dependence"\n');
-fprintf(gp,'set xr [1:%g]\n',noiters);
-fprintf(gp,'set yr [%g:%g]\n',0.95*ddomin(2),1.05*ddomax(2));
-fprintf(gp,'plot \\\n');
-for k = 1:noruns
-	fprintf(gp,'datfileo i %d using 1:2 w lines not, \\\n',k-1);
-end
-fprintf(gp,'NaN not\n\n');
 
 fprintf(gp,'set ylabel "$\\\\sigma$" norot\n');
 fprintf(gp,'set logs y\n\n');
+for h = 1:nhists
 
-fprintf(gp,'set title "Pre-optimisation - step size"\n');
-fprintf(gp,'set xr [1:%g]\n',npiters);
-fprintf(gp,'set yr [*:%g]\n',1.05*ddpmax(3));
-fprintf(gp,'plot \\\n');
-for k = 1:npruns
-	fprintf(gp,'datfilep i %d using 1:3 w lines not, \\\n',k-1);
+	fprintf(gp,'set title "%s - step size"\n',titles{h});
+	fprintf(gp,'set xr [1:%g]\n',niters(h));
+	fprintf(gp,'set yr [*:%g]\n',1.05*ddmax{h}(3));
+	fprintf(gp,'plot \\\n');
+	for k = 1:nruns(h)
+		fprintf(gp,'datfile_%d i %d using 1:3 w lines not, \\\n',h,k-1);
+	end
+	fprintf(gp,'NaN not\n\n');
 end
-fprintf(gp,'NaN not\n\n');
-
-fprintf(gp,'set title "Optimisation - step size"\n');
-fprintf(gp,'set xr [1:%g]\n',noiters);
-fprintf(gp,'set yr [*:%g]\n',1.05*ddomax(3));
-fprintf(gp,'plot \\\n');
-for k = 1:noruns
-	fprintf(gp,'datfileo i %d using 1:3 w lines not, \\\n',k-1);
-end
-fprintf(gp,'NaN not\n\n');
 
 fprintf(gp,'unset multiplot\n');
 gp_close(gp,gpstem,gpterm,gpplot);
