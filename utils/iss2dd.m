@@ -8,7 +8,7 @@ function D = iss2dd(L,A,C,K)
 
 % Calculate residuals covariance matrix V of projected model (solve DARE)
 
-[~,V,rep] = ss2iss(A,L'*C,K*K',[],K*L);
+[~,V,rep] = mdare(A,L'*C,K*K',[],K*L); % mdare from MVGC2
 
 if rep < 0  || rep > 1e-08 % DARE failed
 	D = NaN;
