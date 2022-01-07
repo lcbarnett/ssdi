@@ -34,6 +34,18 @@ if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+varmod = exist('G','var');
+if varmod % VAR model
+	if isscalar(G), n = G; G = ones(n); else, n = size(G,1); end; % fully-connected if G scalar
+	if ~exist('r',    'var'), r = n;   end % VAR model order
+	if ~exist('w',    'var'), w = 1;   end % VAR coefficients decay parameter
+else      % fully-connected state-space model
+	if ~exist('n',    'var'), n = 9;   end % microscopic dimension
+	if ~exist('r',    'var'), r = 3*n; end % hidden state dimension
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if ~exist('gvprog',   'var'), gvprog   = 'neato';   end % GraphViz program/format (also try 'neato', 'fdp')
 if ~exist('gvdisp',   'var'), gvdisp   = true;      end % GraphViz display? (else just generate graph files)
 if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';   end % Gnuplot terminal
@@ -43,67 +55,31 @@ if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scriptname = mfilename;
-siparms = [sitol siminp2 simaxp2];
-
-% Model type (and connectivity graph if VAR)
-
-varmod = exist('G','var');
-if varmod % VAR model
-	if isscalar(G)
-		n = G;                         % microscopic state dimension
-		G = ones(n);                   % fully-connected
-	else
-		n = size(G,1);
-	end
-	if ~exist('r','var'), r = n;   end % VAR model order
-	if ~exist('w','var'), w = 1;   end % VAR coefficients decay parameter
-else      % fully-connected state-space model
-	if ~exist('n','var'), n = 7;   end % microscopic state dimension
-	if ~exist('r','var'), r = 3*n; end % hidden state dimension
-end
+siparms    = [sitol siminp2 simaxp2];
 
 % Generate random VAR or ISS model
 
 rstate = rng_seed(mseed);
-[V,SQRTV] = corr_rand(n,rcorr); % residuals covariance matrix (rcorr = 0 for identity matrix; i.e., no residuals correlation)
-ISQRTV = SQRTV\eye(n);
+V0 = corr_rand(n,rcorr); % residuals covariance matrix
 if varmod
-	ARA = var_rand(G,r,rho,w);
-	gc = var_to_pwcgc(ARA,V);   % causal graph
-
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
-
-	for k = 1:r
-		ARA(:,:,k) = ISQRTV*ARA(:,:,k)*SQRTV;
-	end
-	[A,C,K] = var_to_ss(ARA);   % equivalent ISS model
-	V = eye(n);
-
-	CAK = ARA;                  % CAK sequence for pre-optimisation
-
+	ARA0 = var_rand(G,r,rho,w);             % random VAR model
+	gc = var_to_pwcgc(ARA0,V0);             % causal graph
+	[ARA,V] = transform_var(ARA0,V0);       % transform model to decorrelated-residuals form
+	[A,C,K] = var_to_ss(ARA);               % equivalent ISS model
+	CAK = ARA;                              % CAK sequence for pre-optimisation
 	if isempty(fres)
 		[fres,ierr] = var2fres(ARA,V,siparms);
 		if isnan(fres) % failed!
 			fprintf(2,'WARNING: Spectral integral frequency resolution estimation failed - defaulting to autocorrelation estimate');
-			[fres,ierr] = var2fres(ARA,V); % use autocorrelation-based estimate
+			[fres,ierr] = var2fres(ARA,V);  % use autocorrelation-based estimate
 		end
 	end
-	fprintf('\nVAR frequency resolution = %d (integration error = %e)\n\n',fres,ierr);
-
-	H = var2trfun(ARA,fres);    % transfer function
+	H = var2trfun(ARA,fres);                % transfer function
 else
-	[A,C,K] = iss_rand(n,r,rho);
-	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
-
-	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
-
-	% A is unchanged
-	C = ISQRTV*C;
-	K = K*SQRTV;
-	V = eye(n);
-
-	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
-
+	[A0,C0,K0] = iss_rand(n,r,rho);         % random ISS model
+	gc = ss_to_pwcgc(A0,C0,K0,V0);          % causal graph
+	[A,C,K,V] = transform_ss(A0,C0,K0,V0);  % transform model to decorrelated-residuals form
+	CAK = iss2cak(A,C,K);                   % CAK sequence for pre-optimisation
 	if isempty(fres)
 		[fres,ierr] = ss2fres(A,C,K,V,siparms);
 		if isnan(fres) % failed!
@@ -111,26 +87,21 @@ else
 			[fres,ierr] = ss2fres(A,C,K,V); % use autocorrelation-based estimate
 		end
 	end
-	fprintf('\nSS frequency resolution = %d (integration error = %e)\n\n',fres,ierr);
-
-	H = ss2trfun(A,C,K,fres);   % transfer function
+	H = ss2trfun(A,C,K,fres);               % transfer function
 end
-rng_restore(rstate);
-
-rstate = rng_seed(iseed);
-
-% Spectral integration check
-
+fprintf('\nFrequency resolution = %d (integration error = %e)\n\n',fres,ierr);
 fprintf('Spectral DD accuracy check (frequency resolution = %d) ... ',fres);
-derr = dds_check(A,C,K,H,m,nsics);
+derr = dds_check(A,C,K,H,m,nsics); % spectral integration check
 fprintf('integration error = %e\n\n',derr);
 if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
+rng_restore(rstate);
 
 % Display causal graph
 
 eweight = gc/nanmax(gc(:));
 gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
+fprintf('\n');
 
 % Set 1+1 evolution strategy parameters
 
@@ -139,12 +110,11 @@ algo = '1+1 ES';
 
 % Initialise optimisation
 
+rstate = rng_seed(iseed);
 iopt = zeros(1,nruns);
 dopt = zeros(1,nruns);
 Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear projections
-
 rng_restore(rstate);
-
 if hist
 	dhistp = cell(nruns,1);
 	dhists = cell(nruns,1);
@@ -208,9 +178,7 @@ rng_restore(rstate);
 
 % Transform Lopt back to correlated residuals form
 
-for k = 1:nruns
-	Lopt(:,:,k) = ISQRTV'*Lopt(:,:,k);
-end
+Lopt = transform_proj(Lopt,V0); % V0 is the original residuals covariance matrix
 
 % Sort (local) optima by dynamical dependence
 
