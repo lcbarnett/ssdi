@@ -13,14 +13,19 @@ if ~exist('rho',      'var'), rho      = 0.9;       end % spectral norm (< 1)
 if ~exist('rcorr',    'var'), rcorr    = 0;         end % residuals correlation (actually multiinformation); 0 for no correlation
 if ~exist('mseed',    'var'), mseed    = 0;         end % model random seed (0 to use current rng state)
 if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
-if ~exist('ssig0',    'var'), ssig0    = 0.01;      end % spetral optimisation initial step size
-if ~exist('dsig0',    'var'), dsig0    = 0.001;     end % SS optimisation initial step size
-if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolutionary strategy adaptation rule
-if ~exist('estol',    'var'), estol    = 1e-8;      end % evolutionary strategy convergence tolerance
+if ~exist('ssig0',    'var'), ssig0    = 0.01;      end % spectral optimisation initial step size
+if ~exist('gsig0',    'var'), gsig0    = 10.0;      end % gradient descent optimisation initial step size
+if ~exist('dsig0',    'var'), dsig0    = 0.001;     end % state-space optimisation initial step size
+if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolution strategy step-size adaptation rule
+if ~exist('estol',    'var'), estol    = 1e-8;      end % evolution strategy convergence tolerance
 if ~exist('fres',     'var'), fres     = [];        end % frequency resolution (empty for automatic)
+if ~exist('sitol',    'var'), sitol    = 1e-12;     end % spectral integration tolerance
+if ~exist('siminp2',  'var'), siminp2  = 6;         end % spectral integration freq. res. min power of 2
+if ~exist('simaxp2',  'var'), simaxp2  = 14;        end % spectral integration freq. res. max power of 2
 if ~exist('nsics',    'var'), nsics    = 100;       end % number of samples for spectral integration check
 if ~exist('npiters',  'var'), npiters  = 100000;    end % pre-optimisation iterations
 if ~exist('nsiters',  'var'), nsiters  = 10000;     end % spectral optimisation iterations
+if ~exist('ngiters',  'var'), ngiters  = 1000;      end % gradient descent optimisation iterations
 if ~exist('nditers',  'var'), nditers  = 1000;      end % SS optimisation iterations
 if ~exist('nruns',    'var'), nruns    = 10;        end % runs (restarts)
 if ~exist('hist',     'var'), hist     = true;      end % calculate optimisation history?
@@ -38,6 +43,7 @@ if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scriptname = mfilename;
+siparms = [sitol siminp2 simaxp2];
 
 % Model type (and connectivity graph if VAR)
 
@@ -63,7 +69,6 @@ rstate = rng_seed(mseed);
 ISQRTV = SQRTV\eye(n);
 if varmod
 	ARA = var_rand(G,r,rho,w);
-	info = var_info(ARA,V);     % VAR information
 	gc = var_to_pwcgc(ARA,V);   % causal graph
 
 	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
@@ -75,11 +80,19 @@ if varmod
 	V = eye(n);
 
 	CAK = ARA;                  % CAK sequence for pre-optimisation
-	if isempty(fres), fres = info.fres; end % frequency resolution
+
+	if isempty(fres)
+		[fres,ierr] = var2fres(ARA,V,siparms);
+		if isnan(fres) % failed!
+			fprintf(2,'WARNING: Spectral integral frequency resolution estimation failed - defaulting to autocorrelation estimate');
+			[fres,ierr] = var2fres(ARA,V); % use autocorrelation-based estimate
+		end
+	end
+	fprintf('\nVAR frequency resolution = %d (integration error = %e)\n\n',fres,ierr);
+
 	H = var2trfun(ARA,fres);    % transfer function
 else
 	[A,C,K] = iss_rand(n,r,rho);
-	info = ss_info(A,C,K,V);    % SS information
 	gc = ss_to_pwcgc(A,C,K,V);  % causal graph
 
 	% Transform model to decorrelated-residuals form (by ISQRTV = inverse left-Cholesky factor of V)
@@ -90,10 +103,28 @@ else
 	V = eye(n);
 
 	CAK = iss2cak(A,C,K);       % CAK sequence for pre-optimisation
-	if isempty(fres), fres = info.fres; end % frequency resolution
+
+	if isempty(fres)
+		[fres,ierr] = ss2fres(A,C,K,V,siparms);
+		if isnan(fres) % failed!
+			fprintf(2,'\nWARNING: Spectral integral frequency resolution estimation failed - defaulting to autocorrelation estimate');
+			[fres,ierr] = ss2fres(A,C,K,V); % use autocorrelation-based estimate
+		end
+	end
+	fprintf('\nSS frequency resolution = %d (integration error = %e)\n\n',fres,ierr);
+
 	H = ss2trfun(A,C,K,fres);   % transfer function
 end
 rng_restore(rstate);
+
+rstate = rng_seed(iseed);
+
+% Spectral integration check
+
+fprintf('Spectral DD accuracy check (frequency resolution = %d) ... ',fres);
+derr = dds_check(A,C,K,H,m,nsics);
+fprintf('integration error = %e\n\n',derr);
+if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
 
 % Display causal graph
 
@@ -101,29 +132,10 @@ eweight = gc/nanmax(gc(:));
 gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 
-% Set 1+1 evolutionary strategy parameters
+% Set 1+1 evolution strategy parameters
 
 algo = '1+1 ES';
 [ifac,nfac] = es_parms(esrule,m*(n-m));
-
-rstate = rng_seed(iseed);
-
-% Spectral integration check
-
-fprintf('Spectral DD integration check (frequency resolution = %d) ... ',fres);
-L = rand_orthonormal(n,m,nsics); % (orthonormalised) random linear projections
-D1 = zeros(nsics,1);
-for k = 1:nsics
-	D1(k) = iss2dd(L(:,:,k),A,C,K);
-end
-D2 = zeros(nsics,1);
-for k = 1:nsics
-	D2(k) = trfun2dd(L(:,:,k),H);
-end
-mad = maxabs(D1-D2);
-fprintf('max. abs. diff = %e\n\n',mad);
-if mad > 1e-12, fprintf(2,'WARNING: spectral method may be inaccurate!\n\n'); end
-clear L D1 D2
 
 % Initialise optimisation
 
@@ -136,6 +148,7 @@ rng_restore(rstate);
 if hist
 	dhistp = cell(nruns,1);
 	dhists = cell(nruns,1);
+	dhistg = cell(nruns,1);
 	dhistd = cell(nruns,1);
 end
 
@@ -156,22 +169,32 @@ for k = 1:nruns
 		fprintf(' in %6d iterations\n',ioptk);
 	end
 
-	% Optimisation using integrated spectral method (usually faster, potentially less accurate)
+	% Optimisation using integrated spectral method (generally faster, potentially less accurate)
 
 	if nsiters > 0
 		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,nsiters,ssig0,ifac,nfac,estol,hist);
 		if hist, dhists{k} = dhistk; end
-		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+		fprintf('\tsopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
 		fprintf(' in %6d iterations\n',ioptk);
 	end
 
-	% Optimisation using state-space (DARE) method (usually slower)
+	% Optimisation using gradient descent
+
+	if ngiters > 0
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddg(H,Loptk,ngiters,gsig0,ifac,nfac,estol,hist);
+		if hist, dhistg{k} = dhistk; end
+		fprintf('\tgopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
+		fprintf(' in %6d iterations\n',ioptk);
+	end
+
+	% Optimisation using state-space (DARE) method (most accurate, but may be slower)
 
 	if nditers > 0       % use state-space (DARE) method (usually slower)
 		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifac,nfac,estol,hist);
 		if hist, dhistd{k} = dhistk; end
-		fprintf('\topt     : dopt = %.4e : sig = %.4e : ',doptk,sigk);
+		fprintf('\tdopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
 		fprintf(' in %6d iterations\n',ioptk);
 	end
@@ -197,6 +220,7 @@ Lopt = Lopt(:,:,sidx);
 if hist
 	dhistp = dhistp(sidx);
 	dhists = dhists(sidx);
+	dhistg = dhistg(sidx);
 	dhistd = dhistd(sidx);
 end
 fprintf('\noptimal dynamical dependence =\n'); disp(dopt');
@@ -226,9 +250,9 @@ if hist
 	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
 	gpscale = [Inf,1.5];
-	dhist  = {dhistp;dhists;dhistd};
-	niters = [npiters;nsiters;nditers];
-	titles = {'Pre-optimisation';'Spectral optimisation';'SS optimisation'};
+	dhist  = {dhistp;dhists;dhistg;dhistd};
+	niters = [npiters;nsiters;ngiters;nditers];
+	titles = {'Pre-optimisation';'Spectral optimisation';'Gradient descent';'SS optimisation'};
 	gp_opthist(dhist,niters,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
