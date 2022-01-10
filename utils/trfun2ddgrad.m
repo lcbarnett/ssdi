@@ -17,4 +17,4 @@ for k = 1:h % over [0,pi]
 end
 G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)'/(h-1); % integrate frequency-domain gradient (trapezoidal rule) to get time-domain gradient
 
-G = G-(L*L')*G; % Edelman-Arias-Smith
+G = G-(L*L')*G; % Edelman-Arias-Smith, eq. (2.70)
