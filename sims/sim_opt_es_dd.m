@@ -66,7 +66,6 @@ if varmod
 	gc = var_to_pwcgc(ARA0,V0);             % causal graph
 	[ARA,V] = transform_var(ARA0,V0);       % transform model to decorrelated-residuals form
 	[A,C,K] = var_to_ss(ARA);               % equivalent ISS model
-	CAK = ARA;                              % CAK sequence for pre-optimisation
 	if isempty(fres)
 		[fres,ierr] = var2fres(ARA,V,siparms);
 		if isnan(fres) % failed!
@@ -75,11 +74,11 @@ if varmod
 		end
 	end
 	H = var2trfun(ARA,fres);                % transfer function
+	CAK = ARA;                              % CAK sequence for pre-optimisation
 else
 	[A0,C0,K0] = iss_rand(n,r,rho);         % random ISS model
 	gc = ss_to_pwcgc(A0,C0,K0,V0);          % causal graph
 	[A,C,K,V] = transform_ss(A0,C0,K0,V0);  % transform model to decorrelated-residuals form
-	CAK = iss2cak(A,C,K);                   % CAK sequence for pre-optimisation
 	if isempty(fres)
 		[fres,ierr] = ss2fres(A,C,K,V,siparms);
 		if isnan(fres) % failed!
@@ -88,6 +87,7 @@ else
 		end
 	end
 	H = ss2trfun(A,C,K,fres);               % transfer function
+	CAK = iss2cak(A,C,K);                   % CAK sequence for pre-optimisation
 end
 fprintf('\nFrequency resolution = %d (integration error = %e)\n\n',fres,ierr);
 fprintf('Spectral DD accuracy check (frequency resolution = %d) ... ',fres);
