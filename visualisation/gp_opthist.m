@@ -3,12 +3,12 @@ function gp_opthist(dhist,niters,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gp
 % Plot optimisation histories
 
 nhists = length(dhist);
-
 for h = 1:nhists
 	nruns(h) = length(dhist{h});
 	ddmax{h} = max(cell2mat(dhist{h}));
 	ddmin{h} = min(cell2mat(dhist{h}));
 end
+nnzhists = nnz(niters);
 
 [~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 for h = 1:nhists
@@ -22,10 +22,11 @@ fprintf(gp,'set key top left Left rev\n');
 fprintf(gp,'set xlabel "iterations"\n');
 fprintf(gp,'set logs x\n');
 fprintf(gp,'set grid\n\n');
-fprintf(gp,'set multiplot title "%s" layout 2,%d\n\n',gptitle,nhists);
+fprintf(gp,'set multiplot title "%s" layout 2,%d\n\n',gptitle,nnzhists);
 
 fprintf(gp,'set ylabel "DD" norot\n\n');
 for h = 1:nhists
+	if niters(h) == 0, continue; end
 	fprintf(gp,'set title "%s - dynamical dependence"\n',titles{h});
 	fprintf(gp,'set xr [1:%g]\n',niters(h));
 	fprintf(gp,'set yr [0:%g]\n',1.05*ddmax{h}(2));
@@ -39,7 +40,7 @@ end
 fprintf(gp,'set ylabel "$\\\\sigma$" norot\n');
 fprintf(gp,'set logs y\n\n');
 for h = 1:nhists
-
+	if niters(h) == 0, continue; end
 	fprintf(gp,'set title "%s - step size"\n',titles{h});
 	fprintf(gp,'set xr [1:%g]\n',niters(h));
 	fprintf(gp,'set yr [*:%g]\n',1.05*ddmax{h}(3));
