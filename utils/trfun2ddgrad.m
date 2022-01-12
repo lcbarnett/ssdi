@@ -14,5 +14,21 @@ for k = 1:h % over [0,pi]
 	Qk = Hk'*L;
 	g(:,:,k) = real((Hk*Qk)/(Qk'*Qk)); % grad/2
 end
-G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)/(h-1); % integrate frequency-domain gradient (trapezoidal rule) to get time-domain gradient
-G = G-(L*L')*G; % Edelman-Arias-Smith, eq. (2.70)
+
+% Integrate frequency-domain derivative (trapezoidal rule) and
+% subtract 2*L to get time-domain gradient (see note below)
+
+G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)/(h-1) - 2*L;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% NOTE: the gradients are
+%
+% G <--- G-L*L'*G;   Grassmannian: Edelman-Arias-Smith, eq. (2.70)
+% G <--- G-L*G'*L;   Stiefel:      Edelman-Arias-Smith, eq. (2.53)
+%
+% Here these turn out to be the same! In fact in our case
+%
+% L*L'*G = L*G'*L = 2*L
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&
