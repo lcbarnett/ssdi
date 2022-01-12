@@ -8,20 +8,24 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ddg(H,Lopt,maxiters,sig,
 if isscalar(tol)
 	stol = tol;
 	dtol = tol;
+	gtol = tol;
 else
 	stol = tol(1);
 	dtol = tol(2);
+	gtol = tol(3);
 end
 
 [n,m] = size(Lopt);
 
 % Calculate dynamical dependence of initial projection
 
-dopt = trfun2dd(Lopt,H);
+dopt  = trfun2dd(Lopt,H);
+grad  = trfun2ddgrad(Lopt,H);               % dynamical dependence gradient
+mgrad = sqrt(sum(grad(:).^2));              % magnitude of gradient vector
 
 if hist
 	dhist = zeros(maxiters,3);
-	i = 1; dhist(i,:) = [1 dopt sig];
+	dhist(1,:) = [dopt sig mgrad];
 else
 	dhist = [];
 end
@@ -33,8 +37,9 @@ for iters = 2:maxiters
 
 	% Move (hopefully) down gradient and orthonormalise
 
-	grad = trfun2ddgrad(Lopt,H);          % dynamical dependence gradient
-	Ltry = orthonormalise(Lopt-sig*grad); % gradient descent
+	grad  = trfun2ddgrad(Lopt,H);               % dynamical dependence gradient
+	mgrad = sqrt(sum(grad(:).^2));              % magnitude of gradient vector
+	Ltry = orthonormalise(Lopt-sig*grad/mgrad); % gradient descent
 
 	% Calculate dynamical dependence of mutated projection
 
@@ -44,17 +49,14 @@ for iters = 2:maxiters
 
 	if dtry < dopt
 		Lopt = Ltry;
-		if hist
-			i = i+1; dhist(i,:) = [iters dopt sig];
-			dopt = dtry;
-			sig  = ifac*sig;
-			i = i+1; dhist(i,:) = [iters dopt sig];
-		else
-			dopt = dtry;
-			sig  = ifac*sig;
-		end
+		dopt = dtry;
+		sig  = ifac*sig;
 	else
-		sig = nfac*sig;
+		sig  = nfac*sig;
+	end
+
+	if hist
+		dhist(iters,:) = [dopt sig mgrad];
 	end
 
 	% Test convergence
@@ -69,9 +71,13 @@ for iters = 2:maxiters
 		break
 	end
 
+	if mgrad < gtol
+		converged = 3;
+		break
+	end
+
 end
 
 if hist
-	i = i+1; dhist(i,:) = [iters dopt sig];
-	dhist = dhist(1:i,:);
+	dhist = dhist(1:iters,:);
 end

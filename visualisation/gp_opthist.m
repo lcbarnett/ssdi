@@ -29,10 +29,10 @@ for h = 1:nhists
 	if niters(h) == 0, continue; end
 	fprintf(gp,'set title "%s - dynamical dependence"\n',titles{h});
 	fprintf(gp,'set xr [1:%g]\n',niters(h));
-	fprintf(gp,'set yr [0:%g]\n',1.05*ddmax{h}(2));
+	fprintf(gp,'set yr [%g:%g]\n',0.95*ddmin{h}(1),1.05*ddmax{h}(1));
 	fprintf(gp,'plot \\\n');
 	for k = 1:nruns(h)
-		fprintf(gp,'datfile_%d i %d using 1:2 w lines not, \\\n',h,k-1);
+		fprintf(gp,'datfile_%d i %d using 1 w lines not, \\\n',h,k-1);
 	end
 	fprintf(gp,'NaN not\n\n');
 end
@@ -43,10 +43,10 @@ for h = 1:nhists
 	if niters(h) == 0, continue; end
 	fprintf(gp,'set title "%s - step size"\n',titles{h});
 	fprintf(gp,'set xr [1:%g]\n',niters(h));
-	fprintf(gp,'set yr [*:%g]\n',1.05*ddmax{h}(3));
+	fprintf(gp,'set yr [*:%g]\n',1.05*ddmax{h}(2));
 	fprintf(gp,'plot \\\n');
 	for k = 1:nruns(h)
-		fprintf(gp,'datfile_%d i %d using 1:3 w lines not, \\\n',h,k-1);
+		fprintf(gp,'datfile_%d i %d using 2 w lines not, \\\n',h,k-1);
 	end
 	fprintf(gp,'NaN not\n\n');
 end
