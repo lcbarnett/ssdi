@@ -1,4 +1,4 @@
-function G = trfun2ddgrad(L,H)
+function [G,mG] = trfun2ddgrad(L,H)
 
 % Calculate gradient of spectral dynamical dependence
 % of projection L from transfer function H.
@@ -32,3 +32,7 @@ G = sum(g(:,:,1:end-1)+g(:,:,2:end),3)/(h-1) - 2*L;
 % L*L'*G = L*G'*L = 2*L
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&
+
+if nargout > 1
+	mG = sqrt(sum(G(:).^2)); % magnitude of gradient
+end
