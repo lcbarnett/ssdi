@@ -2,10 +2,7 @@
 % State-space dynamical independence optimisation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% must supply m = macroscopic state dimension
-
-if ~exist('resdir', 'var'), resdir = tempdir; end % results directory
-if ~exist('rid',    'var'), rid    = '';      end % run ID tag
+% Must supply m = macroscopic state dimension
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -15,11 +12,6 @@ if ~exist('gsig0',    'var'), gsig0    = 0.1;       end % gradient descent optim
 if ~exist('dsig0',    'var'), dsig0    = 0.001;     end % state-space optimisation initial step size
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolution strategy step-size adaptation rule
 if ~exist('estol',    'var'), estol    = 1e-8;      end % evolution strategy convergence tolerance
-if ~exist('fres',     'var'), fres     = [];        end % frequency resolution (empty for automatic)
-if ~exist('sitol',    'var'), sitol    = 1e-12;     end % spectral integration tolerance
-if ~exist('siminp2',  'var'), siminp2  = 6;         end % spectral integration freq. res. min power of 2
-if ~exist('simaxp2',  'var'), simaxp2  = 14;        end % spectral integration freq. res. max power of 2
-if ~exist('nsics',    'var'), nsics    = 100;       end % number of samples for spectral integration check
 if ~exist('npiters',  'var'), npiters  = 100000;    end % pre-optimisation iterations
 if ~exist('nsiters',  'var'), nsiters  = 1000;      end % spectral optimisation iterations
 if ~exist('ngiters',  'var'), ngiters  = 1000;      end % gradient descent optimisation iterations
@@ -31,6 +23,8 @@ if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if ~exist('resdir',   'var'), resdir   = tempdir;   end % results directory
+if ~exist('rid',      'var'), rid      = '';        end % run ID tag
 if ~exist('gvprog',   'var'), gvprog   = 'neato';   end % GraphViz program/format (also try 'neato', 'fdp')
 if ~exist('gvdisp',   'var'), gvdisp   = true;      end % GraphViz display? (else just generate graph files)
 if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';   end % Gnuplot terminal
@@ -40,7 +34,6 @@ if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scriptname = mfilename;
-siparms    = [sitol siminp2 simaxp2];
 
 % Generate random VAR or ISS model
 
