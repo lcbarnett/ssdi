@@ -12,6 +12,8 @@ if ~exist('ssig0',    'var'), ssig0    = 0.01;      end % spectral optimisation 
 if ~exist('dsig0',    'var'), dsig0    = 0.001;     end % state-space optimisation initial step size
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolution strategy step-size adaptation rule
 if ~exist('estol',    'var'), estol    = 1e-8;      end % evolution strategy convergence tolerance
+if ~exist('gdrule',   'var'), gdrule   = [2,1/2];   end % gradient-descent "line search" parameters
+if ~exist('gdtol',    'var'), gdtol    = 1e-8;      end % gradient descent convergence tolerance
 if ~exist('npiters',  'var'), npiters  = 10000;     end % pre-optimisation iterations
 if ~exist('ngiters',  'var'), ngiters  = 1000;      end % gradient descent optimisation iterations
 if ~exist('nsiters',  'var'), nsiters  = 1000;      end % spectral optimisation iterations
@@ -51,6 +53,11 @@ fprintf('\n');
 algo = '1+1 ES';
 [ifac,nfac] = es_parms(esrule,m*(n-m));
 
+% Set gradient descent strategy parameters
+
+ifgd = gdrule(1);
+nfgd = gdrule(2);
+
 % Initialise optimisation
 
 rstate = rng_seed(iseed);
@@ -85,7 +92,7 @@ for k = 1:nruns
 	% Optimisation using gradient descent
 
 	if ngiters > 0
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,ngiters,gsig0,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,ngiters,gsig0,ifgd,nfgd,gdtol,hist);
 		if hist, dhistg{k} = dhistk; end
 		fprintf('\tgopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end

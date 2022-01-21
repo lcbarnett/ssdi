@@ -1,4 +1,4 @@
-function [dd,L,converged,sig,iters,dhist] = opt_gd_dds(H,L,maxiters,sig,ifac,nfac,tol,hist)
+function [dd,L,converged,sig,iters,dhist] = opt_gd_dds1(H,L,maxiters,sig,ifac,nfac,tol,hist)
 
 % Assumptions
 %
