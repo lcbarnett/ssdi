@@ -1,4 +1,4 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_ddg1(H,Lopt,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_dds(H,Lopt,maxiters,sig,ifac,nfac,tol,hist)
 
 % Assumptions
 %

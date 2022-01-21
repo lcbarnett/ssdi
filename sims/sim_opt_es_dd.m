@@ -85,7 +85,7 @@ for k = 1:nruns
 	% Optimisation using gradient descent
 
 	if ngiters > 0
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddg(H,Loptk,ngiters,gsig0,ifac,nfac,estol,hist);
+		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,ngiters,gsig0,ifac,nfac,estol,hist);
 		if hist, dhistg{k} = dhistk; end
 		fprintf('\tgopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
 		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end

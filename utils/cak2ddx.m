@@ -4,7 +4,7 @@ function D = cak2ddx(L,CAK)
 %
 % For an innovations-form state-space model with parameters (A,C,K)
 %
-%     CAK_k, k = 1,...,r is the sequence of m x (n-m) matrices CA^{k-1}K
+%     CAK_k, k = 1,...,r is the sequence of n x n matrices CA^{k-1}K
 %
 % where r is the ISS model order; see iss2cak.m.
 %

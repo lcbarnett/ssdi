@@ -1,6 +1,6 @@
 function CAK = iss2cak(A,C,K)
 
-% Return the sequence U_k = CA^{k-1}K, k = 1,...,r of n times matrices
+% Return the sequence CA^{k-1}K, k = 1,...,r of n x n matrices
 
 r = size(A,1);
 n = size(C,1);
