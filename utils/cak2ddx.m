@@ -1,6 +1,6 @@
 function D = cak2ddx(L,CAK)
 
-% Calculate proxy dynamical dependence of projection L for preoptimisation.
+% Calculate proxy dynamical dependence
 %
 % For an innovations-form state-space model with parameters (A,C,K)
 %

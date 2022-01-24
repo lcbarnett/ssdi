@@ -1,7 +1,6 @@
 function [G,mG] = cak2ddxgrad(L,CAK)
 
 % Calculate gradient of proxy dynamical dependence
-% of projection L
 %
 % For an innovations-form state-space model with parameters (A,C,K)
 %
@@ -14,17 +13,16 @@ function [G,mG] = cak2ddxgrad(L,CAK)
 % NOTE 1: assumes uncorrelated residuals
 % NOTE 2: projection L orthogonal!!!
 
-% Calculate Frobenius norm of dynamical independence condition
-
 r = size(CAK,3);
 n = size(L,1);
 P = L*L';
-J = eye(n)-2*P;
 g = zeros(n);
 for k = 1:r
-	g = g + CAK*J*CAK';
+	Q = CAK(:,:,k);
+	QT = Q';
+	g = g + Q*QT - QT*P*Q - Q*P*QT;
 end
-G = g*L;
+G = 2*g*L;
 G = G - P*G;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
