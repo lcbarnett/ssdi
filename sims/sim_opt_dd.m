@@ -145,12 +145,13 @@ fprintf('done\n');
 
 if hist
 	gptitle = sprintf('Optimisation history : n = %d, r = %d, m = %d',n,r,m);
-	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
-	gpscale = [Inf,1.5];
-	dhist  = {dhistp;dhists;dhistd};
-	niters = [npiters;nsiters;nditers];
-	titles = {'Pre-optimisation (GD)';'Spectral optimisation (GD)';'SS optimisation (ES)'};
-	gp_opthist(dhist,niters,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gpstem   = fullfile(resdir,[scriptname '_opthist' rid]);
+	gpscale  = [Inf,1.5];
+	dhist    = {dhistp;dhists;dhistd};
+	niters   = [npiters;nsiters;nditers];
+	havegrad = [true,true,false];
+	titles   = {'Pre-optimisation (GD)';'Spectral optimisation (GD)';'SS optimisation (ES)'};
+	gp_opthist(dhist,niters,havegrad,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances
