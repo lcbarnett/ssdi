@@ -1,8 +1,4 @@
 % Specify mergedir, mergeroot, mergerid
-%
-% probably
-%
-% mergeroot = 'sim_opt_es_dd_nohist';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -84,7 +80,7 @@ fprintf('*** saving workspace in ''%s''... ',wsfile);
 save(wsfile);
 fprintf('done\n');
 
-% Plot (local) optimum dynamical dependencies at all scales
+% Plot (local) optimum dynamical dependences at all scales
 
 gptitle = sprintf('Local optima (%s) : n = %d, r = %d',algo,n,r);
 gpstem = fullfile(resdir,[scriptname '_localopt' rid]);
@@ -100,7 +96,6 @@ gptitle = sprintf('Plucker distances (%s) : n = %d, r = %d',algo,n,r);
 gpstem = fullfile(resdir,[scriptname '_plucker' rid]);
 
 % m = 4; k = 3; gp_plucker(Loptx{m}(:,k),n,m,gptitle,fullfile(resdir,sprintf('%s_plucker%s_scale%02d_run%03d',scriptname,rid,m,k)),gpterm,gpscale,gpfsize,gpplot);
-
 
 % To display axis projection-weighted graph, e.g.:
 

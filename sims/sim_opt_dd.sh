@@ -1,12 +1,14 @@
 #!/bin/bash
 
+# Template batch script for running sim_opt_dd across all scales
+
 # base name of this script (without extension)
 scriptname=$(basename $0 .sh)
 
 echo -e "\n*** Running batch script '"$scriptname"' ***\n"
 
 # path to Matlab code directory
-codedir=$LOCALREPO/matlab/DI_opt_02
+codedir=$GITDIR/ssdi
 
 # current directory (the directory this script is run in - log files will go here)
 currdir=$(pwd -P)
@@ -33,19 +35,11 @@ do
         resdir = '$currdir';\
         rid    = '_"$net"_$m';\
         G      = $net;\
-        r      = 16;\
         m      = $m;\
-        piters = 10000;\
-        siters = 1000;\
-        niters = 100;\
         nruns  = 100;\
-        hist   = false;\
         gvdisp = false;\
         gpplot = false;\
-        mseed  = 1234;\
-        iseed  = 5678;\
-        oseed  = 9012;\
-        sim_opt_es_dd;\
+        sim_opt_dd;\
         quit"
 
     # run Matlab as background job

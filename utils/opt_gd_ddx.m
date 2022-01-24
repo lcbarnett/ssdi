@@ -8,7 +8,7 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_ddx(CAK,Lopt,maxiters,si
 if isscalar(tol)
 	stol = tol;
 	dtol = tol;
-	gtol = tol;
+	gtol = tol/10;
 else
 	stol = tol(1);
 	dtol = tol(2);
@@ -23,7 +23,7 @@ dopt = cak2ddx(Lopt,CAK);
 
 if hist
 	[~,g] = cak2ddxgrad(Lopt,CAK);  % dynamical dependence gradient
-	dhist = zeros(maxiters,2);
+	dhist = zeros(maxiters,3);
 	dhist(1,:) = [dopt sig g];
 else
 	dhist = [];

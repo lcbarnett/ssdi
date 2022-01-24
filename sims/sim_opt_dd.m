@@ -1,23 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% State-space dynamical independence optimisation
+% Dynamical dependence optimisation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Must supply m = macroscopic state dimension
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('psig0',    'var'), psig0    = 0.1;       end % pre-optimisation initial step size
-if ~exist('gsig0',    'var'), gsig0    = 0.1;       end % gradient descent optimisation initial step size
-if ~exist('ssig0',    'var'), ssig0    = 0.01;      end % spectral optimisation initial step size
-if ~exist('dsig0',    'var'), dsig0    = 0.001;     end % state-space optimisation initial step size
+if ~exist('psig0',    'var'), psig0    = 1;         end % pre-optimisation (gradient descent) initial step size
+if ~exist('ssig0',    'var'), ssig0    = 0.1;       end % dd optimisation (gradient descent) initial step size
+if ~exist('dsig0',    'var'), dsig0    = 0.0001;    end % dd optimisation (evolution strategy) initial step size
+if ~exist('gdrule',   'var'), gdrule   = [2,1/2];   end % gradient-descent "line search" parameters
+if ~exist('gdtol',    'var'), gdtol    = 1e-10;     end % gradient descent convergence tolerance
 if ~exist('esrule',   'var'), esrule   = 1/5;       end % evolution strategy step-size adaptation rule
 if ~exist('estol',    'var'), estol    = 1e-8;      end % evolution strategy convergence tolerance
-if ~exist('gdrule',   'var'), gdrule   = [2,1/2];   end % gradient-descent "line search" parameters
-if ~exist('gdtol',    'var'), gdtol    = 1e-8;      end % gradient descent convergence tolerance
-if ~exist('npiters',  'var'), npiters  = 10000;     end % pre-optimisation iterations
-if ~exist('ngiters',  'var'), ngiters  = 1000;      end % gradient descent optimisation iterations
-if ~exist('nsiters',  'var'), nsiters  = 1000;      end % spectral optimisation iterations
-if ~exist('nditers',  'var'), nditers  = 100;       end % SS optimisation iterations
+if ~exist('npiters',  'var'), npiters  = 10000;     end % pre-optimisation (gradient descent) iterations
+if ~exist('nsiters',  'var'), nsiters  = 1000;      end % spectral method optimisation (gradient descent) iterations
+if ~exist('nditers',  'var'), nditers  = 100;       end % state-space method optimisation (evolution strategy) iterations
 if ~exist('nruns',    'var'), nruns    = 10;        end % runs (restarts)
 if ~exist('hist',     'var'), hist     = true;      end % calculate optimisation history?
 if ~exist('iseed',    'var'), iseed    = 0;         end % initialisation random seed (0 to use current rng state)
@@ -48,15 +46,14 @@ gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
 wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 fprintf('\n');
 
-% Set 1+1 evolution strategy parameters
-
-algo = '1+1 ES';
-[ifac,nfac] = es_parms(esrule,m*(n-m));
-
 % Set gradient descent strategy parameters
 
 ifgd = gdrule(1);
 nfgd = gdrule(2);
+
+% Set 1+1 evolution strategy parameters
+
+[ifes,nfes] = es_parms(esrule,m*(n-m));
 
 % Initialise optimisation
 
@@ -68,7 +65,6 @@ rng_restore(rstate);
 if hist
 	dhistp = cell(nruns,1);
 	dhists = cell(nruns,1);
-	dhistg = cell(nruns,1);
 	dhistd = cell(nruns,1);
 end
 
@@ -79,45 +75,29 @@ for k = 1:nruns
 
 	Loptk = Lopt(:,:,k);
 
-	% Pre-optimisation using "proxy" DD
+	% "Proxy" DD pre-optimisation (gradient descent)
 
-	if npiters > 0
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_ddx(CAK,Loptk,npiters,psig0,ifac,nfac,estol,hist);
-		if hist, dhistp{k} = dhistk; end
-		fprintf('\tpre-opt : dopt = %.4e : sig = %.4e : ',doptk,sigk);
-		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-		fprintf(' in %6d iterations\n',ioptk);
-	end
+	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,ifgd,nfgd,gdtol,hist);
+	if hist, dhistp{k} = dhistk; end
+	fprintf('\tpopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
+	fprintf(' in %4d iterations\n',ioptk);
 
-	% Optimisation using gradient descent
+	% DD optimisation (gradient descent) using spectral integration method
 
-	if ngiters > 0
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,ngiters,gsig0,ifgd,nfgd,gdtol,hist);
-		if hist, dhistg{k} = dhistk; end
-		fprintf('\tgopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
-		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-		fprintf(' in %6d iterations\n',ioptk);
-	end
+	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,ifgd,nfgd,gdtol,hist);
+	if hist, dhists{k} = dhistk; end
+	fprintf('\tsopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
+	fprintf(' in %4d iterations\n',ioptk);
 
-	% Optimisation using integrated spectral method (generally faster, potentially less accurate)
+	% DD optimisation (evolutionary strategy) using state-space (DARE) method (most accurate, but may be slower)
 
-	if nsiters > 0
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dds(H,Loptk,nsiters,ssig0,ifac,nfac,estol,hist);
-		if hist, dhists{k} = dhistk; end
-		fprintf('\tsopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
-		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-		fprintf(' in %6d iterations\n',ioptk);
-	end
-
-	% Optimisation using state-space (DARE) method (most accurate, but may be slower)
-
-	if nditers > 0       % use state-space (DARE) method (usually slower)
-		[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifac,nfac,estol,hist);
-		if hist, dhistd{k} = dhistk; end
-		fprintf('\tdopt    : dopt = %.4e : sig = %.4e : ',doptk,sigk);
-		if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-		fprintf(' in %6d iterations\n',ioptk);
-	end
+	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifes,nfes,estol,hist);
+	if hist, dhistd{k} = dhistk; end
+	fprintf('\tdopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
+	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
+	fprintf(' in %4d iterations\n',ioptk);
 
 	Lopt(:,:,k) = Loptk;
 	dopt(k) = doptk;
@@ -137,7 +117,6 @@ iopt = iopt(sidx);
 Lopt = Lopt(:,:,sidx);
 if hist
 	dhistp = dhistp(sidx);
-	dhistg = dhistg(sidx);
 	dhists = dhists(sidx);
 	dhistd = dhistd(sidx);
 end
@@ -165,18 +144,18 @@ fprintf('done\n');
 % Plot optimisation histories
 
 if hist
-	gptitle = sprintf('Optimisation history (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
+	gptitle = sprintf('Optimisation history : n = %d, r = %d, m = %d',n,r,m);
 	gpstem = fullfile(resdir,[scriptname '_opthist' rid]);
 	gpscale = [Inf,1.5];
-	dhist  = {dhistp;dhistg;dhists;dhistd};
-	niters = [npiters;ngiters;nsiters;nditers];
-	titles = {'Pre-optimisation';'Gradient descent';'Spectral optimisation';'SS optimisation'};
+	dhist  = {dhistp;dhists;dhistd};
+	niters = [npiters;nsiters;nditers];
+	titles = {'Pre-optimisation (GD)';'Spectral optimisation (GD)';'SS optimisation (ES)'};
 	gp_opthist(dhist,niters,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances
 
-gptitle = sprintf('Inter-optimum distance (%s) : n = %d, r = %d, m = %d',algo,n,r,m);
+gptitle = sprintf('Inter-optimum distance : n = %d, r = %d, m = %d',n,r,m);
 gpstem = fullfile(resdir,[scriptname '_iodist' rid]);
 gpscale = [1.2,1.1];
 gp_iodist(Loptd,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
