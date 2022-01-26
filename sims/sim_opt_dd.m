@@ -48,16 +48,22 @@ nfgd = gdrule(2);
 
 % Initialise optimisation
 
-rstate = rng_seed(iseed);
-iopt = zeros(1,nruns);
-dopt = zeros(1,nruns);
-Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear projections
-rng_restore(rstate);
+dopt  = zeros(1,nruns);
+ioptp = zeros(1,nruns);
+iopts = zeros(1,nruns);
+ioptd = zeros(1,nruns);
+cputp = zeros(1,nruns);
+cputs = zeros(1,nruns);
+cputd = zeros(1,nruns);
 if hist
 	dhistp = cell(nruns,1);
 	dhists = cell(nruns,1);
 	dhistd = cell(nruns,1);
 end
+
+rstate = rng_seed(iseed);
+Lopt = rand_orthonormal(n,m,nruns); % initial (orthonormalised) random linear projections
+rng_restore(rstate);
 
 rstate = rng_seed(oseed);
 st = tic;
@@ -70,42 +76,39 @@ for k = 1:nruns
 	% "Proxy" DD pre-optimisation (gradient descent)
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,ifgd,nfgd,gdtol,hist);
-	secs = cputime-tcpu;
+	[doptk,Loptk,converged,sigk,ioptp(k),dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,ifgd,nfgd,gdtol,hist);
+	cputp(k) = cputime-tcpu;
 	if hist, dhistp{k} = dhistk; end
 	fprintf('\tpopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
+	fprintf(' in %4d iterations : CPU secs = %6.2f\n',ioptp(k),cputp(k));
 
 	% DD optimisation (gradient descent) using spectral integration method
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,ifgd,nfgd,gdtol,hist);
-	secs = cputime-tcpu;
+	[doptk,Loptk,converged,sigk,iopts(k),dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,ifgd,nfgd,gdtol,hist);
+	cputs(k) = cputime-tcpu;
 	if hist, dhists{k} = dhistk; end
 	fprintf('\tsopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
+	fprintf(' in %4d iterations : CPU secs = %6.2f\n',iopts(k),cputs(k));
 
 	% DD optimisation (evolutionary strategy) using state-space (DARE) method (most accurate, but may be slower)
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifes,nfes,estol,hist);
-	secs = cputime-tcpu;
+	[doptk,Loptk,converged,sigk,ioptd(k),dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifes,nfes,estol,hist);
+	cputd(k) = cputime-tcpu;
 	if hist, dhistd{k} = dhistk; end
 	fprintf('\tdopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
+	fprintf(' in %4d iterations : CPU secs = %6.2f\n',ioptd(k),cputd(k));
 
 	Lopt(:,:,k) = Loptk;
 	dopt(k) = doptk;
-	iopt(k) = ioptk;
 
 end
 et = toc(st);
 rng_restore(rstate);
-
-fprintf('\ntotal time = %s\n',datestr(seconds(et),'HH:MM:SS.FFF'));
 
 % Transform Lopt back to correlated residuals form
 
@@ -114,14 +117,26 @@ Lopt = transform_proj(Lopt,V0); % V0 is the original residuals covariance matrix
 % Sort (local) optima by dynamical dependence
 
 [dopt,sidx] = sort(dopt);
-iopt = iopt(sidx);
-Lopt = Lopt(:,:,sidx);
+ioptp = ioptp(sidx);
+iopts = iopts(sidx);
+ioptd = ioptd(sidx);
+cputp = cputp(sidx);
+cputs = cputs(sidx);
+cputd = cputd(sidx);
 if hist
 	dhistp = dhistp(sidx);
 	dhists = dhists(sidx);
 	dhistd = dhistd(sidx);
 end
+Lopt = Lopt(:,:,sidx);
 fprintf('\noptimal dynamical dependence =\n'); disp(dopt');
+
+fprintf('\ntotal time = %s\n\n',datestr(seconds(et),'HH:MM:SS.FFF'));
+
+fprintf('popt CPU secs = %7.4f +- %6.4f\n',mean(cputp),std(cputp));
+fprintf('sopt CPU secs = %7.4f +- %6.4f\n',mean(cputs),std(cputs));
+fprintf('dopt CPU secs = %7.4f +- %6.4f\n',mean(cputd),std(cputd));
+fprintf('\n');
 
 nweight = zeros(n,nruns);
 for k = 1:nruns
@@ -132,7 +147,7 @@ Loptd = gmetrics(Lopt);
 
 % Save workspace
 
-clear k doptk Loptk sigk ioptk dhistk converged
+clear k doptk Loptk sigk dhistk converged
 if hist
 	wsfile = fullfile(resdir,[scriptname '_hist' rid '.mat']);
 else
@@ -140,7 +155,7 @@ else
 end
 fprintf('*** saving workspace in ''%s''... ',wsfile);
 save(wsfile);
-fprintf('done\n');
+fprintf('done\n\n');
 
 % Plot optimisation histories
 
