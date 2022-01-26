@@ -21,6 +21,8 @@ end
 fprintf(gp,'set key top left Left rev\n');
 fprintf(gp,'set xlabel "iterations"\n');
 fprintf(gp,'set logs x\n');
+fprintf(gp,'set lmargin 12\n');
+fprintf(gp,'set rmargin 6\n');
 fprintf(gp,'set grid\n\n');
 fprintf(gp,'set multiplot title "%s" layout 3,%d\n\n',gptitle,nnzhists);
 

@@ -16,6 +16,6 @@ fprintf(gp,'unset ylabel\n');
 fprintf(gp,'set xr[0.5:%d+0.5]\n',nruns);
 fprintf(gp,'set yr[0.5:%d+0.5]\n',nruns);
 fprintf(gp,'set cbrange[0:1]\n');
-fprintf(gp,'set palette defined ( 0 "#ffffff", 0.1 "#4D74C4", 1 "#000000" )\n');
+fprintf(gp,'set palette defined ( 0 "#ffffff", 0.5 "#4D74C4", 1 "#000000" )\n');
 fprintf(gp,'plot datfile matrix with image not\n');
 gp_close(gp,gpstem,gpterm,gpplot);

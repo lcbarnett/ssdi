@@ -25,8 +25,6 @@ if ~exist('oseed',    'var'), oseed    = 0;         end % optimisation random se
 
 if ~exist('resdir',   'var'), resdir   = tempdir;   end % results directory
 if ~exist('rid',      'var'), rid      = '';        end % run ID tag
-if ~exist('gvprog',   'var'), gvprog   = 'neato';   end % GraphViz program/format (also try 'neato', 'fdp')
-if ~exist('gvdisp',   'var'), gvdisp   = true;      end % GraphViz display? (else just generate graph files)
 if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';   end % Gnuplot terminal
 if ~exist('gpfsize',  'var'), gpfsize  = 14;        end % Gnuplot font size
 if ~exist('gpplot',   'var'), gpplot   = 2;         end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
@@ -38,13 +36,6 @@ scriptname = mfilename;
 % Generate random VAR or ISS model
 
 sim_model;
-
-% Display causal graph
-
-eweight = gc/nanmax(gc(:));
-gfile = fullfile(resdir,[scriptname '_pwcgc' rid]);
-wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
-fprintf('\n');
 
 % Set gradient descent strategy parameters
 
@@ -69,6 +60,7 @@ if hist
 end
 
 rstate = rng_seed(oseed);
+st = tic;
 for k = 1:nruns
 
 	fprintf('run %2d of %2d\n',k,nruns);
@@ -77,34 +69,43 @@ for k = 1:nruns
 
 	% "Proxy" DD pre-optimisation (gradient descent)
 
+	tcpu = cputime;
 	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,ifgd,nfgd,gdtol,hist);
+	secs = cputime-tcpu;
 	if hist, dhistp{k} = dhistk; end
 	fprintf('\tpopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations\n',ioptk);
+	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
 
 	% DD optimisation (gradient descent) using spectral integration method
 
+	tcpu = cputime;
 	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,ifgd,nfgd,gdtol,hist);
+	secs = cputime-tcpu;
 	if hist, dhists{k} = dhistk; end
 	fprintf('\tsopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations\n',ioptk);
+	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
 
 	% DD optimisation (evolutionary strategy) using state-space (DARE) method (most accurate, but may be slower)
 
+	tcpu = cputime;
 	[doptk,Loptk,converged,sigk,ioptk,dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifes,nfes,estol,hist);
+	secs = cputime-tcpu;
 	if hist, dhistd{k} = dhistk; end
 	fprintf('\tdopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
 	if converged > 0, fprintf('converged(%d)',converged); else, fprintf('unconverged '); end
-	fprintf(' in %4d iterations\n',ioptk);
+	fprintf(' in %4d iterations (%.2f secs)\n',ioptk,secs);
 
 	Lopt(:,:,k) = Loptk;
 	dopt(k) = doptk;
 	iopt(k) = ioptk;
 
 end
+et = toc(st);
 rng_restore(rstate);
+
+fprintf('\ntotal time = %s\n',datestr(seconds(et),'HH:MM:SS.FFF'));
 
 % Transform Lopt back to correlated residuals form
 
