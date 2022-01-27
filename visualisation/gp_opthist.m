@@ -1,18 +1,18 @@
-function gp_opthist(dhist,niters,havegrad,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
+function gp_opthist(hist,niters,havegrad,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
 
 % Plot optimisation histories
 
-nhists = length(dhist);
+nhists = length(hist);
 for h = 1:nhists
-	nruns(h) = length(dhist{h});
-	ddmax{h} = max(cell2mat(dhist{h}));
-	ddmin{h} = min(cell2mat(dhist{h}));
+	nruns(h) = length(hist{h});
+	ddmax{h} = max(cell2mat(hist{h}));
+	ddmin{h} = min(cell2mat(hist{h}));
 end
 nnzhists = nnz(niters);
 
 [~,gpname] = fileparts([gpstem '.xxx']); % hack to get fileparts to behave itself
 for h = 1:nhists
-	gp_write(sprintf('%s_%d',gpstem,h),dhist{h});
+	gp_write(sprintf('%s_%d',gpstem,h),hist{h});
 end
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
 for h = 1:nhists
@@ -42,8 +42,10 @@ for h = 1:nhists
 	end
 end
 
-fprintf(gp,'set ylabel "$\\\\sigma$" norot\n');
+fprintf(gp,'\nset format y "%%.0e"\n');
 fprintf(gp,'set logs y\n\n');
+
+fprintf(gp,'set ylabel "$\\\\sigma$" norot\n');
 for h = 1:nhists
 	if niters(h) > 0
 		fprintf(gp,'set title "%s - step size"\n',titles{h});
@@ -60,7 +62,6 @@ for h = 1:nhists
 end
 
 fprintf(gp,'set ylabel "$\\\\nabla$" norot\n');
-fprintf(gp,'set logs y\n\n');
 for h = 1:nhists
 	if niters(h) > 0 && havegrad(h)
 		fprintf(gp,'set title "%s - gradient"\n',titles{h});

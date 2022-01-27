@@ -1,9 +1,12 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_ddx(CAK,Lopt,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_ddx(CAK,Lopt,maxiters,sig,gdls,tol,hist)
 
 % Assumptions
 %
 % 1 - Lopt is orthonormal
 % 2 - Residuals covariance matrix is identity
+
+ifac = gdls(1);
+nfac = gdls(2);
 
 if isscalar(tol)
 	stol = tol;

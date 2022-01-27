@@ -24,7 +24,7 @@ if ~exist('mseed',    'var'), mseed    = 0;       end % model random seed (0 to 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~exist('gvprog',   'var'), gvprog   = 'neato'; end % GraphViz program/format (also try 'neato', 'fdp')
-if ~exist('gvdisp',   'var'), gvdisp   = true;    end % GraphViz display? (else just generate graph files)
+if ~exist('gvdisp',   'var'), gvdisp   = true;    end % GraphViz display? Empty for no action, true to display, false to just generate files)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,7 +71,9 @@ rng_restore(rstate);
 
 % Optionally display causal graph
 
-eweight = gc/nanmax(gc(:));
-gfile = fullfile(resdir,[scriptname '_pwcgc']);
-wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
-fprintf('\n');
+if ~isempty(gvdisp)
+	eweight = gc/nanmax(gc(:));
+	gfile = fullfile(resdir,'sim_model_pwcgc');
+	wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
+	fprintf('\n');
+end
