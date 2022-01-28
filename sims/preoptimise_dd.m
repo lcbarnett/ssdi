@@ -34,7 +34,7 @@ if ~exist('iseed',    'var'), iseed    = 0;           end % initialisation rando
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~exist('sig0p',    'var'), sig0p    = 1;           end % pre-optimisation (gradient descent) initial step size
-if ~exist('gdlsp',    'var'), gdlsp    = [2,1/2];     end % gradient-descent "line search" parameters
+if ~exist('gdlsp',    'var'), gdlsp    = 2;           end % gradient-descent "line search" parameters
 if ~exist('gdtolp',   'var'), gdtolp   = 1e-10;       end % gradient descent convergence tolerance
 if ~exist('nitersp',  'var'), nitersp  = 10000;       end % pre-optimisation iterations
 
@@ -131,7 +131,7 @@ goptp = gmetrics(Loptp);
 if hist
 	gptitle  = sprintf('Pre-optimisation history: %s, m = %d',mdescript,m);
 	gpstem   = fullfile(tempdir,'preopt_hist');
-	gp_opthist({histp},nitersp,true,{'Pre-optimisation (GD)'},gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gp_opthist({histp},nitersp,true,true,{'Pre-optimisation (GD)'},gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances

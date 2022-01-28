@@ -5,8 +5,13 @@ function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_dds(H,Lopt,maxiters,sig,
 % 1 - Lopt is orthonormal
 % 2 - Residuals covariance matrix is identity
 
-ifac = gdls(1);
-nfac = gdls(2);
+if isscalar(gdls)
+	ifac = gdls;
+	nfac = 1/ifac;
+else
+	ifac = gdls(1);
+	nfac = gdls(2);
+end
 
 if isscalar(tol)
 	stol = tol;

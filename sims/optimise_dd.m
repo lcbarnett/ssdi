@@ -22,7 +22,7 @@ if ~exist('hist',     'var'), hist     = true;        end % calculate optimisati
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~exist('sig0o',    'var'), sig0o    = 0.1;         end % optimisation (gradient descent) initial step size
-if ~exist('gdlso',    'var'), gdlso    = [2,1/2];     end % gradient-descent "line search" parameters
+if ~exist('gdlso',    'var'), gdlso    = 2;           end % gradient-descent "line search" parameters
 if ~exist('gdtolo',   'var'), gdtolo   = 1e-10;       end % gradient descent convergence tolerance
 if ~exist('niterso',  'var'), niterso  = 10000;       end % pre-optimisation iterations
 
@@ -119,7 +119,7 @@ gopto = gmetrics(Lopto);
 if hist
 	gptitle  = sprintf('Optimisation history: %s, m = %d',mdescript,m);
 	gpstem   = fullfile(tempdir,'opt_hist');
-	gp_opthist({histp;histo},[nitersp;niterso],[true;true],{'Pre-optimisation (GD)','Optimisation (GD)'},gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gp_opthist({histp;histo},[nitersp;niterso],[true;true],true,{'Pre-optimisation (GD)','Optimisation (GD)'},gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances

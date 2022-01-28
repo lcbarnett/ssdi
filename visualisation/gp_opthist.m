@@ -1,4 +1,4 @@
-function gp_opthist(hist,niters,havegrad,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
+function gp_opthist(hist,niters,havegrad,logsx,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot)
 
 % Plot optimisation histories
 
@@ -20,7 +20,9 @@ for h = 1:nhists
 end
 fprintf(gp,'set key top left Left rev\n');
 fprintf(gp,'set xlabel "iterations"\n');
-fprintf(gp,'set logs x\n');
+if logsx
+	fprintf(gp,'set logs x\n');
+end
 fprintf(gp,'set lmargin 12\n');
 fprintf(gp,'set rmargin 6\n');
 fprintf(gp,'set grid\n\n');

@@ -166,8 +166,9 @@ if hist
 	dhist    = {dhistp;dhists;dhistd};
 	niters   = [npiters;nsiters;nditers];
 	havegrad = [true,true,false];
+	logsx    = true;
 	titles   = {'Pre-optimisation (GD)';'Spectral optimisation (GD)';'SS optimisation (ES)'};
-	gp_opthist(dhist,niters,havegrad,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
+	gp_opthist(dhist,niters,havegrad,logsx,titles,gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
 end
 
 % Plot inter-optima subspace distances
