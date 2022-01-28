@@ -1,4 +1,4 @@
-function [uidx,usiz] = Lcluster(dist,tol,dd,logsy,resdir,rid,gpterm,gpscale,gpfsize,gpplot);
+function [uidx,usiz,nruns] = Lcluster(dist,tol,dd,logsy,resdir,rid,gpterm,gpscale,gpfsize,gpplot);
 
 % Hyperplanes should be sorted (ascending) by
 % dynamical dependence prior to calling.
@@ -27,6 +27,15 @@ end
 uidx = uidx(1:k);
 usiz = usiz(1:k);
 
+nruns = length(uidx);
+fprintf('\n------------------------\n');
+fprintf('Clusters = %d\n',nruns);
+fprintf('------------------------\n');
+for k = 1:nruns
+	fprintf('run %4d      size = %3d\n',uidx(k),usiz(k));
+end
+fprintf('------------------------\n\n');
+
 if nargin > 2 && ~isempty(dd)
 	if nargin <  4 || isempty(logsy),  logsy  = true;    end
 	if nargin <  5 || isempty(resdir), resdir = tempdir; end
@@ -44,6 +53,7 @@ if nargin > 2 && ~isempty(dd)
 	fprintf(gp,'set title "%s"\n','DD difference');
 	fprintf(gp,'unset key\n');
 	fprintf(gp,'set grid\n');
+	fprintf(gp,'set xr [0:%g]\n',r+1);
 	fprintf(gp,'set xlabel "run number"\n');
 	if logsy
 		fprintf(gp,'set logs y\n');
@@ -51,4 +61,5 @@ if nargin > 2 && ~isempty(dd)
 	fprintf(gp,'set style fill solid 0.2\n');
 	fprintf(gp,'\nplot datfile using 1:2 with boxes\\\n');
 	gp_close(gp,gpstem,gpterm,gpplot);
+	fprintf('\n');
 end
