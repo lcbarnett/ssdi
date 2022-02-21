@@ -20,30 +20,30 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('moddir',   'var'), moddir   = tempdir;     end % model directory
-if ~exist('resdir',   'var'), resdir   = tempdir;     end % results directory
-if ~exist('fnamem',   'var'), fnamem   = 'model_dd';  end % model filename root
-if ~exist('fnamep',   'var'), fnamep   = 'preopt_dd'; end % pre-optimisation filename root
+defvar('moddir',  tempdir     ); % model directory
+defvar('resdir',  tempdir     ); % results directory
+defvar('fnamem',  'model_dd'  ); % model filename root
+defvar('fnamep',  'preopt_dd' ); % pre-optimisation filename root
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('nrunsp',   'var'), nrunsp   = 100;         end % pre-optimisation runs (restarts)
-if ~exist('hist',     'var'), hist     = true;        end % calculate optimisation history?
-if ~exist('iseed',    'var'), iseed    = 0;           end % initialisation random seed (0 to use current rng state)
+defvar('nrunsp',  100         ); % pre-optimisation runs (restarts)
+defvar('hist',    true        ); % calculate optimisation history?
+defvar('iseed',   0           ); % initialisation random seed (0 to use current rng state)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('sig0p',    'var'), sig0p    = 1;           end % pre-optimisation (gradient descent) initial step size
-if ~exist('gdlsp',    'var'), gdlsp    = 2;           end % gradient-descent "line search" parameters
-if ~exist('gdtolp',   'var'), gdtolp   = 1e-10;       end % gradient descent convergence tolerance
-if ~exist('nitersp',  'var'), nitersp  = 10000;       end % pre-optimisation iterations
+defvar('sig0p',   1           ); % pre-optimisation (gradient descent) initial step size
+defvar('gdlsp',   2           ); % gradient-descent "line search" parameters
+defvar('gdtolp',  1e-10       ); % gradient descent convergence tolerance
+defvar('nitersp', 10000       ); % pre-optimisation iterations
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';     end % Gnuplot terminal
-if ~exist('gpscale',  'var'), gpscale  = [Inf,0.6];   end % Gnuplot scale
-if ~exist('gpfsize',  'var'), gpfsize  = 14;          end % Gnuplot font size
-if ~exist('gpplot',   'var'), gpplot   = 2;           end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
+defvar('gpterm',  'x-pdf'     ); % Gnuplot terminal
+defvar('gpscale', [Inf,0.6]   ); % Gnuplot scale
+defvar('gpfsize', 14          ); % Gnuplot font size
+defvar('gpplot',  2           ); % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

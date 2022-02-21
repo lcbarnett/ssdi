@@ -2,39 +2,38 @@
 % Set up SS or VAR model, calculate transfer function, CAK sequence, etc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('moddir',   'var'), moddir   = tempdir;    end % model directory
-if ~exist('fnamem',   'var'), fnamem   = 'model_dd'; end % model filename root
+defvar('moddir', tempdir   ); % model directory
+defvar('fnamem', 'model_dd'); % model filename root
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 varmod = exist('G','var'); % for a VAR model, specify a connectivity matrix or a scalar dimension
 if varmod % VAR model
 	if isscalar(G), n = G; G = ones(n); else, n = size(G,1); end;
-	if ~exist('r',    'var'), r = 7;                 end % VAR model order
-	if ~exist('w',    'var'), w = 1;                 end % VAR coefficients decay parameter
+	defvar('r', 7   ); % VAR model order
+	defvar('w', 1   ); % VAR coefficients decay parameter
 else      % fully-connected state-space model
-	if ~exist('n',    'var'), n = 9;                 end % microscopic dimension
-	if ~exist('r',    'var'), r = 3*n;               end % hidden state dimension
+	defvar('n', 9   ); % microscopic dimension
+	defvar('r', 3*n ); % hidden state dimension
 end
 
-if ~exist('rho',      'var'), rho      = 0.9;        end % spectral norm (< 1)
-if ~exist('rmii',     'var'), rmii     = 1;          end % residuals multiinformation; 0 for zero correlation
-if ~exist('fres',     'var'), fres     = [];         end % frequency resolution (empty for automatic)
-if ~exist('sitol',    'var'), sitol    = 1e-12;      end % spectral integration tolerance
-if ~exist('siminp2',  'var'), siminp2  = 6;          end % spectral integration freq. res. min power of 2
-if ~exist('simaxp2',  'var'), simaxp2  = 14;         end % spectral integration freq. res. max power of 2
-if ~exist('nsics',    'var'), nsics    = 0;          end % number of samples for spectral integration check (0 for no check)
-if ~exist('mseed',    'var'), mseed    = 0;          end % model random seed (0 to use current rng state)
+defvar('rho',     0.9   ); % spectral norm (< 1)
+defvar('rmii',    1     ); % residuals multiinformation; 0 for zero correlation
+defvar('fres',    []    ); % frequency resolution (empty for automatic)
+defvar('sitol',   1e-12 ); % spectral integration tolerance
+defvar('siminp2', 6     ); % spectral integration freq. res. min power of 2
+defvar('simaxp2', 14    ); % spectral integration freq. res. max power of 2
+defvar('nsics',   0     ); % number of samples for spectral integration check (0 for no check)
+defvar('mseed',   0     ); % model random seed (0 to use current rng state)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('gvprog',   'var'), gvprog   = 'neato'; end % GraphViz program/format (also try 'neato', 'fdp')
-if ~exist('gvdisp',   'var'), gvdisp   = true;    end % GraphViz display? Empty for no action, true to display, false to just generate files)
+defvar('gvprog',  'neato' ); % GraphViz program/format (also try 'neato', 'fdp')
+defvar('gvdisp',  true    ); % GraphViz display? Empty for no action, true to display, false to just generate files)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Generate random VAR or ISS model
-
 rstate = rng_seed(mseed);
 V0 = corr_rand(n,rmii); % residuals covariance matrix
 if varmod
@@ -101,8 +100,7 @@ end
 
 % Save model
 
-clearvars -except moddir fnamem mdescript V0 CAK H
 wsfilem = fullfile(moddir,fnamem);
 fprintf('*** saving model in ''%s''... ',wsfilem);
-save(wsfilem);
+save(wsfilem,'V0','CAK','H');
 fprintf('done\n\n');
