@@ -34,7 +34,7 @@ addpath(fullfile(ssdi_root,sdir));
 fprintf('[ssdi startup] Added sub-path %s\n',sdir);
 
 sdir = 'testing';
-addpath(fullfile(ssdi_root,sdir));
+addpath(genpath(fullfile(ssdi_root,sdir)));
 fprintf('[ssdi startup] Added sub-path %s\n',sdir);
 
 clear sdir
