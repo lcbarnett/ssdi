@@ -20,9 +20,6 @@ end
 defvar('rho',     0.9   ); % spectral norm (< 1)
 defvar('rmii',    1     ); % residuals multiinformation; 0 for zero correlation
 defvar('fres',    []    ); % frequency resolution (empty for automatic)
-defvar('sitol',   1e-12 ); % spectral integration tolerance
-defvar('siminp2', 6     ); % spectral integration freq. res. min power of 2
-defvar('simaxp2', 14    ); % spectral integration freq. res. max power of 2
 defvar('nsics',   0     ); % number of samples for spectral integration check (0 for no check)
 defvar('mseed',   0     ); % model random seed (0 to use current rng state)
 
@@ -42,11 +39,7 @@ if varmod
 	[ARA,V] = transform_var(ARA0,V0);       % transform model to decorrelated-residuals form
 	[A,C,K] = var_to_ss(ARA);               % equivalent ISS model
 	if isempty(fres)
-		[fres,ierr] = var2fres(ARA,V,[sitol,siminp2,simaxp2]);
-		if isnan(fres) % failed!
-			fprintf(2,'WARNING: Spectral integral frequency resolution estimation failed - defaulting to autocorrelation estimate');
-			[fres,ierr] = var2fres(ARA,V);  % use autocorrelation-based estimate
-		end
+		[fres,ierr] = var2fres(ARA,V);
 	end
 	CAK = ARA;                              % CAK sequence for pre-optimisation
 	H = var2trfun(ARA,fres);                % transfer function
@@ -56,11 +49,7 @@ else
 	gc = ss_to_pwcgc(A0,C0,K0,V0);          % causal graph
 	[A,C,K,V] = transform_ss(A0,C0,K0,V0);  % transform model to decorrelated-residuals form
 	if isempty(fres)
-		[fres,ierr] = ss2fres(A,C,K,V,[sitol,siminp2,simaxp2]);
-		if isnan(fres) % failed!
-			fprintf(2,'\nWARNING: Spectral integral frequency resolution estimation failed - defaulting to autocorrelation estimate');
-			[fres,ierr] = ss2fres(A,C,K,V); % use autocorrelation-based estimate
-		end
+		[fres,ierr] = ss2fres(A,C,K,V);
 	end
 	CAK = iss2cak(A,C,K);                   % CAK sequence for pre-optimisation
 	H = ss2trfun(A,C,K,fres);               % transfer function

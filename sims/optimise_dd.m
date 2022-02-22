@@ -10,28 +10,28 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('resdir',   'var'), resdir   = tempdir;     end % results directory
-if ~exist('fnamep',   'var'), fnamep   = 'preopt_dd'; end % pre-optimisation filename root
-if ~exist('fnameo',   'var'), fnameo   = 'opt_dd';    end % pre-optimisation filename root
+defvar('resdir',  tempdir     ); end % results directory
+defvar('fnamep',  'preopt_dd' ); end % pre-optimisation filename root
+defvar('fnameo',  'opt_dd'    ); end % pre-optimisation filename root
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('ctol',     'var'), ctol     = 1e-6;        end % hyperplane clustering tolerance
-if ~exist('hist',     'var'), hist     = true;        end % calculate optimisation history?
+defvar('ctol',    1e-6        ); end % hyperplane clustering tolerance
+defvar('hist',    true        ); end % calculate optimisation history?
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('sig0o',    'var'), sig0o    = 0.1;         end % optimisation (gradient descent) initial step size
-if ~exist('gdlso',    'var'), gdlso    = 2;           end % gradient-descent "line search" parameters
-if ~exist('gdtolo',   'var'), gdtolo   = 1e-10;       end % gradient descent convergence tolerance
-if ~exist('niterso',  'var'), niterso  = 10000;       end % pre-optimisation iterations
+defvar('sig0o',   0.1         ); end % optimisation (gradient descent) initial step size
+defvar('gdlso',   2           ); end % gradient-descent "line search" parameters
+defvar('gdtolo',  1e-10       ); end % gradient descent convergence tolerance
+defvar('niterso', 10000       ); end % pre-optimisation iterations
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ~exist('gpterm',   'var'), gpterm   = 'x-pdf';     end % Gnuplot terminal
-if ~exist('gpscale',  'var'), gpscale  = [Inf,1.1];   end % Gnuplot scale
-if ~exist('gpfsize',  'var'), gpfsize  = 14;          end % Gnuplot font size
-if ~exist('gpplot',   'var'), gpplot   = 2;           end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
+defvar('gpterm',  'x-pdf'     ); end % Gnuplot terminal
+defvar('gpscale', [Inf,1.1]   ); end % Gnuplot scale
+defvar('gpfsize', 14          ); end % Gnuplot font size
+defvar('gpplot',  2           ); end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
