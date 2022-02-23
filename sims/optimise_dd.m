@@ -10,42 +10,43 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('resdir',  tempdir     ); end % results directory
-defvar('fnamep',  'preopt_dd' ); end % pre-optimisation filename root
-defvar('fnameo',  'opt_dd'    ); end % pre-optimisation filename root
+defvar('poptdir',  tempdir     ); % pre-optimisation directory
+defvar('poptname', 'preopt_dd' ); % pre-optimisation filename root
+defvar('optdir',   tempdir     ); % pre-optimisation directory
+defvar('optname',  'opt_dd'    ); % pre-optimisation filename root
 
-%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('ctol',    1e-6        ); end % hyperplane clustering tolerance
-defvar('hist',    true        ); end % calculate optimisation history?
+defvar('ctol',     1e-6        ); % hyperplane clustering tolerance
+defvar('hist',     true        ); % calculate optimisation history?
 
-%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('sig0o',   0.1         ); end % optimisation (gradient descent) initial step size
-defvar('gdlso',   2           ); end % gradient-descent "line search" parameters
-defvar('gdtolo',  1e-10       ); end % gradient descent convergence tolerance
-defvar('niterso', 10000       ); end % pre-optimisation iterations
+defvar('sig0o',    0.1         ); % optimisation (gradient descent) initial step size
+defvar('gdlso',    2           ); % gradient-descent "line search" parameters
+defvar('gdtolo',   1e-10       ); % gradient descent convergence tolerance
+defvar('niterso',  10000       ); % pre-optimisation iterations
 
-%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('gpterm',  'x-pdf'     ); end % Gnuplot terminal
-defvar('gpscale', [Inf,1.1]   ); end % Gnuplot scale
-defvar('gpfsize', 14          ); end % Gnuplot font size
-defvar('gpplot',  2           ); end % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
+defvar('gpterm',   'x-pdf'     ); % Gnuplot terminal
+defvar('gpscale',  [Inf,1.1]   ); % Gnuplot scale
+defvar('gpfsize',  14          ); % Gnuplot font size
+defvar('gpplot',   2           ); % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 assert(exist('mdim','var'),'Must supply macro dimension ''mdim''');
 
-% Load pre-optimisation workspace
+% Load pre-optimisation results
 
 if hist
-	wsfilep = fullfile(resdir,[fnamep '_mdim_' num2str(mdim) '_H.mat']);
+	poptfile = fullfile(poptdir,[poptname '_mdim_' num2str(mdim) '_H.mat']);
 else
-	wsfilep = fullfile(resdir,[fnamep '_mdim_' num2str(mdim) '_N.mat']);
+	poptfile = fullfile(poptdir,[poptname '_mdim_' num2str(mdim) '_N.mat']);
 end
-fprintf('\n*** loading pre-optimisation workspace from ''%s''... ',wsfilep);
-load(wsfilep);
+fprintf('\n*** loading pre-optimisation results from ''%s''... ',poptfile);
+load(poptfile);
 fprintf('done\n\n');
 
 n = size(V0,1);
@@ -133,10 +134,10 @@ gp_iodist(gopto,gptitle,gpstem,gpterm,[1.2,1.1],gpfsize,gpplot);
 clear n m k st et tcpu gpplot gpterm gpscale gpfsize gptitle gpstem
 
 if hist
-	wsfileo = fullfile(resdir,[fnameo '_mdim_' num2str(mdim) '_H.mat']);
+	optfile = fullfile(optdir,[optname '_mdim_' num2str(mdim) '_H.mat']);
 else
-	wsfileo = fullfile(resdir,[fnameo '_mdim_' num2str(mdim) '_N.mat']);
+	optfile = fullfile(optdir,[optname '_mdim_' num2str(mdim) '_N.mat']);
 end
-fprintf('\n*** saving optimisation workspace in ''%s''... ',wsfileo);
-save(wsfileo);
+fprintf('\n*** saving pre-optimisation results in ''%s''... ',optfile);
+save(optfile);
 fprintf('done\n\n');

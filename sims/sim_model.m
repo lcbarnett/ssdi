@@ -2,8 +2,8 @@
 % Set up SS or VAR model, calculate transfer function, CAK sequence, etc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('moddir', tempdir   ); % model directory
-defvar('fnamem', 'model_dd'); % model filename root
+defvar('moddir',  tempdir    ); % model directory
+defvar('modname', 'sim_model'); % model filename root
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -82,14 +82,14 @@ fprintf('--------------------------------------------\n\n');
 
 if ~isempty(gvdisp)
 	eweight = gc/nanmax(gc(:));
-	gfile = fullfile(tempdir,'sim_model_pwcgc');
+	gfile = fullfile(tempdir,'sim_model');
 	wgraph2dot(n,eweight,gfile,[],gvprog,gvdisp);
 	fprintf('\n');
 end
 
 % Save model
 
-wsfilem = fullfile(moddir,fnamem);
-fprintf('*** saving model in ''%s''... ',wsfilem);
-save(wsfilem,'V0','CAK','H');
+modfile = [fullfile(moddir,modname) '.mat'];
+fprintf('*** saving model in ''%s''... ',modfile);
+save(modfile,'V0','CAK','H','mdescript');
 fprintf('done\n\n');
