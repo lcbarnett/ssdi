@@ -61,13 +61,17 @@ fprintf('%s: optimisation for m = %d\n',mdescript,m);
 
 % Initialise optimisations
 
-L0o = Loptp(:,:,uidx);
+L0o = Lp(:,:,uidx);
 
 % Multiple optimisation runs
 
 st = tic;
-[dopto,Lopto,convp,iopto,sopto,cputo,ohisto,et] = opt_gd_dds_mruns(H,L0o,nrunso,niterso,sig0o,gdlso,gdtolo,histo);
+[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,nrunso,niterso,sig0o,gdlso,gdtolo,histo);
 et = toc(st);
+
+% Inverse-transform Lo back for un-decorrelated residuals
+
+Lopto = transform_proj(Lo,V0);
 
 fprintf('\noptimal dynamical dependence =\n'); disp(dopto');
 fprintf('Simulation time = %s\n\n',datestr(seconds(et),'HH:MM:SS.FFF'));
@@ -101,4 +105,4 @@ fprintf('\n*** saving pre-optimisation results in ''%s''... ',optfile);
 save(optfile);
 fprintf('done\n\n');
 
-% !!! Now remember to convert Lopto back to non-decorrelated coordinates !!!
+% !!! Now remember to convert Lo back to non-decorrelated coordinates !!!

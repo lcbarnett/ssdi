@@ -71,8 +71,12 @@ rng_restore(rstate);
 % Multiple optimisation runs
 
 st = tic;
-[doptp,Loptp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nrunsp,nitersp,sig0p,gdlsp,gdtolp,histp);
+[doptp,Lp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nrunsp,nitersp,sig0p,gdlsp,gdtolp,histp);
 et = toc(st);
+
+% Inverse-transform Lopto back for un-decorrelated residuals
+
+Loptp = transform_proj(Lp,V0);
 
 fprintf('\noptimal dynamical dependence =\n'); disp(doptp');
 fprintf('Simulation time = %s\n\n',datestr(seconds(et),'HH:MM:SS.FFF'));
