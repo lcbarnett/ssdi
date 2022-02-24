@@ -11,7 +11,7 @@ function [L,M] = orthonormalise(P)
 % but SVD is very stable.
 
 if nargout < 2
-	[L,~] = svd(P,'econ');
+	[L,~] = svd(P,0);
 else
 	m = size(P,2);
 	[U,~] = svd(P);
