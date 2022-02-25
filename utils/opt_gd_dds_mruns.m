@@ -10,7 +10,7 @@ if hist
 	ohist = cell(nruns,1);
 end
 
-% "Proxy" DD pre-optimisation (gradient descent)
+% DD optimisation (gradient descent)
 
 for k = 1:nruns
 	fprintf('pre-opt run %4d of %4d : ',k,nruns);

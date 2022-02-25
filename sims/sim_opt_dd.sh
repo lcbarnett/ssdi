@@ -22,7 +22,24 @@ fi
 runmatlab="nohup nice $tset matlab -nojvm -nodisplay"
 
 # Parameters
-net=tnet9d
+
+runid="my_run"
+
+# model/data
+n=40
+r=60
+rho=0.9
+gvdisp=[]
+
+# preoptimise
+nrunsp=1000
+nitersp=10000
+gpplot=0
+
+# optimise
+nrunso=1000
+niterso=10000
+gpplot=0
 
 # run multiple concurrent Matlab sessions with different parameters
 for m in {1..8}
@@ -32,14 +49,28 @@ do
 
     # Matlab commands
     matcmds="\
-        resdir = '$currdir';\
-        rid    = '_"$net"_$m';\
-        G      = $net;\
-        m      = $m;\
-        nruns  = 100;\
-        gvdisp = false;\
-        gpplot = false;\
-        sim_opt_dd;\
+		clear;\
+        moddir   = '$currdir';\
+        modname  = '$runid\_model';\
+        n        =  $n;\
+        r        =  $r;\
+        rho      =  $rho;\
+        gvdisp   =  $gvdisp\;
+        sim_model;\
+		clear;\
+        poptdir  = '$currdir';\
+        poptname = '$runid'\_preopt;\
+        nrunsp   =  $nrunsp;\
+        nitersp  =  $nitersp;\
+        preoptimise_dd;\
+        clear;\
+        poptdir  = '$currdir';\
+        poptname = '$runid'\_preopt;\
+        optdir   = '$currdir';\
+        optname  = '$runid'\_opt;\
+        nrunso   =  $nrunso;\
+        niterso  =  $niterso;\
+        optimise_dd;\
         quit"
 
     # run Matlab as background job
