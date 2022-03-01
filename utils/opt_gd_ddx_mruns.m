@@ -12,7 +12,8 @@ end
 
 % "Proxy" DD pre-optimisation (gradient descent)
 
-for k = 1:nruns
+% parpool('local',3)
+parfor k = 1:nruns
 	fprintf('pre-opt run %4d of %4d : ',k,nruns);
 	tcpu = cputime;
 	[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_ddx(CAK,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
