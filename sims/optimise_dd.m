@@ -26,6 +26,7 @@ defvar('sig0o',    0.1         ); % optimisation (gradient descent) initial step
 defvar('gdlso',    2           ); % gradient-descent "line search" parameters
 defvar('gdtolo',   1e-10       ); % gradient descent convergence tolerance
 defvar('histo',    true        ); % calculate optimisation history?
+defvar('ppo',      false       ); % parallelise multiple runs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -66,7 +67,7 @@ L0o = Lp(:,:,uidx);
 % Multiple optimisation runs
 
 st = tic;
-[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,nrunso,niterso,sig0o,gdlso,gdtolo,histo);
+[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,nrunso,niterso,sig0o,gdlso,gdtolo,histo,ppo);
 et = toc(st);
 
 % Inverse-transform Lo back for un-decorrelated residuals

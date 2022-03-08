@@ -10,6 +10,8 @@ sopt = zeros(1,nruns);
 cput = zeros(1,nruns);
 if hist
 	ohist = cell(nruns,1);
+else
+	ohist = [];
 end
 
 % "Proxy" DD pre-optimisation (gradient descent)

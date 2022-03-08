@@ -10,13 +10,15 @@ sopt = zeros(1,nruns);
 cput = zeros(1,nruns);
 if hist
 	ohist = cell(nruns,1);
+else
+	ohist = [];
 end
 
 % DD optimisation (gradient descent)
 
 if pp
 	parfor k = 1:nruns
-		fprintf('pre-opt parallel run %4d of %4d : ',k,nruns);
+		fprintf('optimisation parallel run %4d of %4d : ',k,nruns);
 		tcpu = cputime;
 		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_dds(H,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
 		cput(k) = cputime-tcpu;
@@ -26,7 +28,7 @@ if pp
 	end
 else
 	for k = 1:nruns
-		fprintf('pre-opt serial run %4d of %4d : ',k,nruns);
+		fprintf('optimisation serial run %4d of %4d : ',k,nruns);
 		tcpu = cputime;
 		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_dds(H,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
 		cput(k) = cputime-tcpu;

@@ -37,6 +37,7 @@ defvar('sig0p',    1           ); % pre-optimisation (gradient descent) initial 
 defvar('gdlsp',    2           ); % gradient-descent "line search" parameters
 defvar('gdtolp',   1e-10       ); % gradient descent convergence tolerance
 defvar('histp',    true        ); % calculate optimisation history?
+defvar('ppp',      false       ); % parallelise multiple runs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,7 +72,7 @@ rng_restore(rstate);
 % Multiple optimisation runs
 
 st = tic;
-[doptp,Lp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nrunsp,nitersp,sig0p,gdlsp,gdtolp,histp);
+[doptp,Lp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nrunsp,nitersp,sig0p,gdlsp,gdtolp,histp,ppp);
 et = toc(st);
 
 % Inverse-transform Lopto back for un-decorrelated residuals
