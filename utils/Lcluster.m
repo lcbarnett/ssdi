@@ -7,12 +7,14 @@ r = size(dist,1);
 a = true(1,r); % still available
 uidx = zeros(1,r);
 usiz = zeros(1,r);
+uopt = zeros(1,r);
 k = 0;
 for i = 1:r
 	if a(i) % new cluster
 		k = k+1;
 		uidx(k) = i;
 		usiz(k) = 1;
+		uopt(k) = dd(i);
 		a(i) = false;
 		for j = 1:r
 			if a(j)
@@ -26,15 +28,16 @@ for i = 1:r
 end
 uidx = uidx(1:k);
 usiz = usiz(1:k);
+uopt = uopt(1:k);
 
 nruns = length(uidx);
-fprintf('\n------------------------\n');
+fprintf('\n------------------------------------------\n');
 fprintf('Clusters = %d\n',nruns);
-fprintf('------------------------\n');
+fprintf('------------------------------------------\n');
 for k = 1:nruns
-	fprintf('run %4d      size = %3d\n',uidx(k),usiz(k));
+	fprintf('run %4d      size = %3d      dd = %7.4f\n',uidx(k),usiz(k),uopt(k));
 end
-fprintf('------------------------\n\n');
+fprintf('------------------------------------------\n\n');
 
 if nargin > 2 && ~isempty(dd)
 	if nargin <  4 || isempty(logsy),  logsy  = true;    end
