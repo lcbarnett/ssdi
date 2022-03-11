@@ -30,7 +30,7 @@ defvar('ppo',      false       ); % parallelise multiple runs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-defvar('gpterm',   'x-pdf'     ); % Gnuplot terminal
+defvar('gpterm',   'x11'       ); % Gnuplot terminal
 defvar('gpscale',  [Inf,1.1]   ); % Gnuplot scale
 defvar('gpfsize',  14          ); % Gnuplot font size
 defvar('gpplot',   2           ); % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
