@@ -58,7 +58,7 @@ fprintf('%s: optimisation for m = %d\n',mdescript,m);
 
 % Cluster hyperplanes
 
-[uidx,usiz,nrunso] = Lcluster(goptp,ctol,doptp);
+[uidx,usiz,nrunso] = Lcluster(goptp,ctol,doptp,gpterm,gpscale,gpfsize,gpplot);
 
 % Initialise optimisations
 
@@ -80,7 +80,7 @@ fprintf('CPU secs per run = %7.4f +- %6.4f\n\n',mean(cputo),std(cputo));
 
 % Plot optimisation histories
 
-if histo
+if histo && ~isempty(gpterm)
 	gptitle  = sprintf('Optimisation history: %s, m = %d',mdescript,m);
 	gpstem   = fullfile(tempdir,'opt_hist');
 	gp_opthist({ohistp;ohisto},[nitersp;niterso],[true;true],true,{'Pre-optimisation (GD)','Optimisation (GD)'},gptitle,gpstem,gpterm,gpscale,gpfsize,gpplot);
@@ -89,9 +89,11 @@ end
 % Plot inter-optima subspace distances
 
 gopto = gmetrics(Lopto);
-gptitle = sprintf('Inter-optimum distance: %s, m = %d',mdescript,m);
-gpstem = fullfile(tempdir,'opt_iodist');
-gp_iodist(gopto,gptitle,gpstem,gpterm,[1.2,1.1],gpfsize,gpplot);
+if ~isempty(gpterm)
+	gptitle = sprintf('Inter-optimum distance: %s, m = %d',mdescript,m);
+	gpstem = fullfile(tempdir,'opt_iodist');
+	gp_iodist(gopto,gptitle,gpstem,gpterm,[1.2,1.1],gpfsize,gpplot);
+end
 
 % Save optimisation results
 

@@ -1,4 +1,4 @@
-function [uidx,usiz,nruns] = Lcluster(dist,tol,dd,logsy,resdir,rid,gpterm,gpscale,gpfsize,gpplot);
+function [uidx,usiz,nruns] = Lcluster(dist,tol,dd,gpterm,gpscale,gpfsize,gpplot,logsy,resdir,rid);
 
 % Hyperplanes should be sorted (ascending) by
 % dynamical dependence prior to calling.
@@ -39,14 +39,13 @@ for k = 1:nruns
 end
 fprintf('------------------------------------------\n\n');
 
-if nargin > 2 && ~isempty(dd)
-	if nargin <  4 || isempty(logsy),  logsy  = true;    end
-	if nargin <  5 || isempty(resdir), resdir = tempdir; end
-	if nargin <  6 || isempty(rid),    rid    = '';      end
-	if nargin <  7, gpterm  = []; end
-	if nargin <  8, gpscale = []; end
-	if nargin <  9, gpfsize = []; end
-	if nargin < 10, gpplot  = []; end
+if nargin > 3 && ~isempty(dd) && ~isempty(gpterm)
+	if nargin <  5, gpscale = []; end
+	if nargin <  6, gpfsize = []; end
+	if nargin <  7, gpplot  = []; end
+	if nargin <  8 || isempty(logsy),  logsy  = true;    end
+	if nargin <  9 || isempty(resdir), resdir = tempdir; end
+	if nargin < 10 || isempty(rid),    rid    = '';      end
 	gpdata = [(1:r)' diff([0;dd'])];
 	gpname  = ['lcluster' rid];
 	gpstem  = fullfile(resdir,gpname);
