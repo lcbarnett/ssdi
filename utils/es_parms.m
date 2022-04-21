@@ -1,4 +1,4 @@
-function [ifac,nfac] = es_parms(rule,dim)
+function esrule = es_parms(rule,dim)
 
 % Set 1+1 evolutionary strategy parameters
 
@@ -10,3 +10,4 @@ else
 	ifac = exp((1-rule)*gain);
 	nfac = exp(-rule*gain);
 end
+esrule = [ifac,nfac];

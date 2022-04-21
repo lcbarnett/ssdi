@@ -37,14 +37,9 @@ scriptname = mfilename;
 
 sim_model;
 
-% Set gradient descent strategy parameters
-
-ifgd = gdrule(1);
-nfgd = gdrule(2);
-
 % Set 1+1 evolution strategy parameters
 
-[ifes,nfes] = es_parms(esrule,m*(n-m));
+esparms = es_parms(esrule,m*(n-m));
 
 % Initialise optimisation
 
@@ -76,7 +71,7 @@ for k = 1:nruns
 	% "Proxy" DD pre-optimisation (gradient descent)
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,ioptp(k),dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,ifgd,nfgd,gdtol,hist);
+	[doptk,Loptk,converged,sigk,ioptp(k),dhistk] = opt_gd_ddx(CAK,Loptk,npiters,psig0,gdrule,gdtol,hist);
 	cputp(k) = cputime-tcpu;
 	if hist, dhistp{k} = dhistk; end
 	fprintf('\tpopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
@@ -86,7 +81,7 @@ for k = 1:nruns
 	% DD optimisation (gradient descent) using spectral integration method
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,iopts(k),dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,ifgd,nfgd,gdtol,hist);
+	[doptk,Loptk,converged,sigk,iopts(k),dhistk] = opt_gd_dds(H,Loptk,nsiters,ssig0,gdrule,gdtol,hist);
 	cputs(k) = cputime-tcpu;
 	if hist, dhists{k} = dhistk; end
 	fprintf('\tsopt : dd = %.4e : sig = %.4e : ',doptk,sigk);
@@ -96,7 +91,7 @@ for k = 1:nruns
 	% DD optimisation (evolutionary strategy) using state-space (DARE) method (most accurate, but may be slower)
 
 	tcpu = cputime;
-	[doptk,Loptk,converged,sigk,ioptd(k),dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,ifes,nfes,estol,hist);
+	[doptk,Loptk,converged,sigk,ioptd(k),dhistk] = opt_es_dd(A,C,K,Loptk,nditers,dsig0,esparms,estol,hist);
 	cputd(k) = cputime-tcpu;
 	if hist, dhistd{k} = dhistk; end
 	fprintf('\tdopt : dd = %.4e : sig = %.4e : ',doptk,sigk);

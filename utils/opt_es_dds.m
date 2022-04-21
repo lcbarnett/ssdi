@@ -1,9 +1,12 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dds(H,Lopt,maxiters,sig,ifac,nfac,tol,hist)
+function [dopt,Lopt,converged,sig,iters,dhist] = opt_es_dds(H,Lopt,maxiters,sig,esrule,tol,hist)
 
 % Assumptions
 %
 % 1 - Lopt is orthonormal
 % 2 - Residuals covariance matrix is identity
+
+ifac = esrule(1);
+nfac = esrule(2);
 
 if isscalar(tol)
 	stol = tol;
