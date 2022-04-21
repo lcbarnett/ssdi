@@ -26,7 +26,7 @@ for i = 1:n
 
 end
 
-[~,Vyy,rep] = ssdare(A,L'*C,K*K',[],K*L);
+[~,Vyy,rep] = mdare(A,L'*C,K*K',[],K*L);
 if rep < 0  || rep > 1e-08 % DARE failed
 	Hyy = NaN;
 else
