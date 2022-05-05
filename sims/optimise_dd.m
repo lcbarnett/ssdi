@@ -67,7 +67,7 @@ L0o = Lp(:,:,uidx);
 % Multiple optimisation runs
 
 st = tic;
-[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,nrunso,niterso,sig0o,gdlso,gdtolo,histo,ppo);
+[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,niterso,sig0o,gdlso,gdtolo,histo,ppo);
 et = toc(st);
 
 % Inverse-transform Lo back for un-decorrelated residuals

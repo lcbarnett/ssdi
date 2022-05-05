@@ -1,6 +1,8 @@
-function [dopt,Lopt,conv,iopt,sopt,cput,ohist] = opt_gd_ddx_mruns(CAK,L0,nruns,niters,sig0,gdls,gdtol,hist,pp)
+function [dopt,Lopt,conv,iopt,sopt,cput,ohist] = opt_gd_ddx_mruns(CAK,L0,niters,sig0,gdls,gdtol,hist,pp)
 
 if nargin < 9 || isempty(pp), pp = false; end
+
+nruns = size(L0,3);
 
 dopt = zeros(1,nruns);
 Lopt = zeros(size(L0));

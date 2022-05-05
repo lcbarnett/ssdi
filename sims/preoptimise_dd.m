@@ -72,7 +72,7 @@ rng_restore(rstate);
 % Multiple optimisation runs
 
 st = tic;
-[doptp,Lp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nrunsp,nitersp,sig0p,gdlsp,gdtolp,histp,ppp);
+[doptp,Lp,convp,ioptp,soptp,cputp,ohistp] = opt_gd_ddx_mruns(CAK,L0p,nitersp,sig0p,gdlsp,gdtolp,histp,ppp);
 et = toc(st);
 
 % Inverse-transform Lopto back for un-decorrelated residuals
