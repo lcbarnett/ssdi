@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Test Grassmannian parametrisation: Stiefel vs Lai-Lim-Ye (LLY)
+% Grassmannian parametrisation: Stiefel vs involution (Lai-Lim-Ye, "Q-matrix")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Supply model for your data with decorrelated and normalised residuals (see,
@@ -34,9 +34,9 @@ defvar('hist',     true        ); % calculate optimisation history?
 defvar('sig0s',    1           ); % Stiefel optimisation (gradient descent) initial step size
 defvar('gdlss',    2           ); % Stiefel gradient-descent "line search" parameters
 defvar('gdtols',   1e-10       ); % Stiefel gradient descent convergence tolerance
-defvar('sig0q',    1           ); % LLY optimisation (gradient descent) initial step size
-defvar('gdlsq',    2           ); % LLY gradient-descent "line search" parameters
-defvar('gdtolq',   1e-10       ); % LLY gradient descent convergence tolerance
+defvar('sig0i',    1           ); % LLY optimisation (gradient descent) initial step size
+defvar('gdlsi',    2           ); % LLY gradient-descent "line search" parameters
+defvar('gdtoli',   1e-10       ); % LLY gradient descent convergence tolerance
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
