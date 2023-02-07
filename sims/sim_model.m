@@ -62,9 +62,7 @@ rng_restore(rstate);
 
 if nsics > 0
 	assert(exist('mdim','var'),'For spectral accuracy check, must supply macro dimension ''mdim''');
-	fprintf('Spectral DD accuracy check (frequency resolution = %d) ... ',fres);
-	derr = dds_check(A,C,K,H,m,nsics); % spectral integration check
-	fprintf('integration error = %e\n\n',derr);
+	derr = dds_check(A,C,K,H,mdim,nsics); % spectral integration check
 	if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
 end
 
