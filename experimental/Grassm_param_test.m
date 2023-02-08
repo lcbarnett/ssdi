@@ -20,7 +20,7 @@
 defvar('moddir',   tempdir     );  % model directory
 defvar('modname',  'sim_model' );  % model filename root
 defvar('optdir',   tempdir     );  % optimisation directory
-defvar('optname',  'preopt_dd' );  % optimisation filename root
+defvar('optname',  'siopt_dd'  );  % optimisation filename root
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -7,7 +7,7 @@ if nargin < 3 || isempty(r), r = 1; end
 
 L = randn(n,m,r);
 if nargout > 1
-	M = zeros(n,m,r);
+	M = zeros(n,n-m,r);
 	for k = 1:r
 		[L(:,:,k),M(:,:,k)] = orthonormalise(L(:,:,k));
 	end
