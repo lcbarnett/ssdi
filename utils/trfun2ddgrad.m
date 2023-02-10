@@ -11,8 +11,8 @@ h = size(H,3);
 g = zeros(n,m,h);
 for k = 1:h % over [0,pi]
 	Hk  = H(:,:,k);
-	Qk = Hk'*L;
-	g(:,:,k) = real((Hk*Qk)/(Qk'*Qk)); % grad/2
+	HLk = Hk'*L;
+	g(:,:,k) = real((Hk*HLk)/(HLk'*HLk)); % grad/2
 end
 
 % Integrate frequency-domain derivative (trapezoidal rule) and
