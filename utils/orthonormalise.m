@@ -1,20 +1,20 @@
-function [L,M] = orthonormalise(P)
+function [L,M] = orthonormalise(X)
 
-% Returns an orthonormal basis L for the range of P.
+% Returns an orthonormal basis L for the range of X.
 % That is, L'*L = I, the columns of L span the same space as
-% the columns of P, and the number of columns of L is the
-% rank of P. Optionally, also return orthonormal basis M for
+% the columns of X, and the number of columns of L is the
+% rank of X. Optionally, also return orthonormal basis M for
 % orthogonal subspace.
 %
-% This method uses Singular Value Decompoistion; there are other
-% (possibly more efficient) ways of doing this, such as QR decomposition,
-% but SVD is very stable.
+% Could use QR decomposition, but SVD may be more stable.
 
 if nargout < 2
-	[L,~] = svd(P,0);
+	[L,~] = svd(X,0);
+%	[L,~] = qr(X,0);
 else
-	m = size(P,2);
-	[U,~] = svd(P);
+	[m,n] = size(X);
+	[U,~] = svd(X);
+%	[U,~] = qr(X);
 	L = U(:,1:m);
-	M = U(:,m+1:end);
+	M = U(:,m+1:n);
 end
