@@ -20,7 +20,7 @@ end
 
 if pp
 	parfor k = 1:nruns
-		fprintf('optimisation parallel run %4d of %4d : ',k,nruns);
+		fprintf('GD/ES optimisation parallel run %4d of %4d : ',k,nruns);
 		tcpu = cputime;
 		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_dds(H,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
 		cput(k) = cputime-tcpu;
@@ -30,7 +30,7 @@ if pp
 	end
 else
 	for k = 1:nruns
-		fprintf('optimisation serial run %4d of %4d : ',k,nruns);
+		fprintf('GD/ES optimisation serial run %4d of %4d : ',k,nruns);
 		tcpu = cputime;
 		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_dds(H,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
 		cput(k) = cputime-tcpu;
