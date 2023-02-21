@@ -1,8 +1,8 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_ddx(CAK,Lopt,maxiters,sig,gdls,tol,hist)
+function [dd,L,converged,sig,iters,dhist] = opt_gd_ddx(CAK,L0,maxiters,sig,gdls,tol,hist)
 
 % Assumptions
 %
-% 1 - Lopt is orthonormal
+% 1 - L is orthonormal
 % 2 - Residuals covariance matrix is identity
 
 if isscalar(gdls)
@@ -23,16 +23,15 @@ else
 	gtol = tol(3);
 end
 
-[n,m] = size(Lopt);
-
 % Calculate proxy dynamical dependence of initial projection
 
-dopt = cak2ddx(Lopt,CAK);
+L     = L0;
+[G,g] = cak2ddxgrad(L,CAK); % proxydynamical dependence gradient and magnitude
+dd    = cak2ddx(L,CAK);
 
 if hist
-	[~,g] = cak2ddxgrad(Lopt,CAK);  % dynamical dependence gradient
 	dhist = zeros(maxiters,3);
-	dhist(1,:) = [dopt sig g];
+	dhist(1,:) = [dd sig g];
 else
 	dhist = [];
 end
@@ -44,40 +43,34 @@ for iters = 2:maxiters
 
 	% Move (hopefully) down gradient and orthonormalise
 
-	[G,g] = cak2ddxgrad(Lopt,CAK);        % dynamical dependence gradient and magnitude
-	Ltry  = orthonormalise(Lopt-sig*G/g); % gradient descent
+	Ltry  = orthonormalise(L-sig*(G/g)); % gradient descent
+	ddtry = cak2ddx(Ltry,CAK);
 
-	% Calculate proxy dynamical dependence of mutated projection
+	% If dynamical dependence smaller, accept move and increase step size;
+	% else reject move and decrease step size (similar to 1+1 ES)
 
-	dtry = cak2ddx(Ltry,CAK);
-
-	% If dynamical dependence smaller, accept mutant
-
-	if dtry < dopt
-		Lopt = Ltry;
-		dopt = dtry;
-		sig  = ifac*sig;
+	if ddtry < dd
+		L     = Ltry;
+		[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
+		dd    = ddtry;
+		sig   = ifac*sig;
 	else
-		sig  = nfac*sig;
+		sig   = nfac*sig;
 	end
 
 	if hist
-		dhist(iters,:) = [dopt sig g];
+		dhist(iters,:) = [dd sig g];
 	end
 
 	% Test convergence
 
-	if sig < stol
+	if     sig < stol
 		converged = 1;
 		break
-	end
-
-	if dopt < dtol
+	elseif dd < dtol
 		converged = 2;
 		break
-	end
-
-	if g < gtol
+	elseif g  < gtol
 		converged = 3;
 		break
 	end

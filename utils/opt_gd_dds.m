@@ -26,39 +26,36 @@ end
 % Calculate dynamical dependence of initial projection
 
 L     = L0;
-[G,g] = trfun2ddgrad(L,H);         % dynamical dependence gradient and magnitude
+[G,g] = trfun2ddgrad(L,H); % dynamical dependence gradient and magnitude
 dd    = trfun2dd(L,H);
 
 if hist
-	[~,g] = trfun2ddgrad(L,H);  % dynamical dependence gradient
 	dhist = zeros(maxiters,3);
 	dhist(1,:) = [dd sig g];
 else
 	dhist = [];
 end
 
-% Optimise
+% Optimise: gradient descent
 
 converged = 0;
 for iters = 2:maxiters
 
 	% Move (hopefully) down gradient and orthonormalise
 
-	[G,g] = trfun2ddgrad(L,H);         % dynamical dependence gradient and magnitude
-	Ltry  = orthonormalise(L-sig*G/g); % gradient descent
-
-	% Calculate dynamical dependence of trial projection
-
+	Ltry  = orthonormalise(L-sig*(G/g)); % gradient descent
 	ddtry = trfun2dd(Ltry,H);
 
-	% If dynamical dependence smaller, accept move
+	% If dynamical dependence smaller, accept move and increase step size;
+	% else reject move and decrease step size (similar to 1+1 ES)
 
 	if ddtry < dd
-		L   = Ltry;
-		dd  = ddtry;
-		sig = ifac*sig;
+		L     = Ltry;
+		[G,g] = trfun2ddgrad(L,H); % dynamical dependence gradient and magnitude
+		dd    = ddtry;
+		sig   = ifac*sig;
 	else
-		sig = nfac*sig;
+		sig   = nfac*sig;
 	end
 
 	if hist
