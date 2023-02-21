@@ -1,8 +1,8 @@
-function [dopt,Lopt,converged,sig,iters,dhist] = opt_gd_dds(H,Lopt,maxiters,sig,gdls,tol,hist)
+function [dd,L,converged,sig,iters,dhist] = opt_gd_dds(H,L0,maxiters,sig,gdls,tol,hist)
 
 % Assumptions
 %
-% 1 - Lopt is orthonormal
+% 1 - L is orthonormal
 % 2 - Residuals covariance matrix is identity
 
 if isscalar(gdls)
@@ -23,16 +23,16 @@ else
 	gtol = tol(3);
 end
 
-[n,m] = size(Lopt);
-
 % Calculate dynamical dependence of initial projection
 
-dopt  = trfun2dd(Lopt,H);
+L     = L0;
+[G,g] = trfun2ddgrad(L,H);         % dynamical dependence gradient and magnitude
+dd    = trfun2dd(L,H);
 
 if hist
-	[~,g] = trfun2ddgrad(Lopt,H);  % dynamical dependence gradient
+	[~,g] = trfun2ddgrad(L,H);  % dynamical dependence gradient
 	dhist = zeros(maxiters,3);
-	dhist(1,:) = [dopt sig g];
+	dhist(1,:) = [dd sig g];
 else
 	dhist = [];
 end
@@ -44,40 +44,36 @@ for iters = 2:maxiters
 
 	% Move (hopefully) down gradient and orthonormalise
 
-	[G,g] = trfun2ddgrad(Lopt,H);         % dynamical dependence gradient and magnitude
-	Ltry  = orthonormalise(Lopt-sig*G/g); % gradient descent
+	[G,g] = trfun2ddgrad(L,H);         % dynamical dependence gradient and magnitude
+	Ltry  = orthonormalise(L-sig*G/g); % gradient descent
 
 	% Calculate dynamical dependence of trial projection
 
-	dtry = trfun2dd(Ltry,H);
+	ddtry = trfun2dd(Ltry,H);
 
 	% If dynamical dependence smaller, accept move
 
-	if dtry < dopt
-		Lopt = Ltry;
-		dopt = dtry;
-		sig  = ifac*sig;
+	if ddtry < dd
+		L   = Ltry;
+		dd  = ddtry;
+		sig = ifac*sig;
 	else
-		sig  = nfac*sig;
+		sig = nfac*sig;
 	end
 
 	if hist
-		dhist(iters,:) = [dopt sig g];
+		dhist(iters,:) = [dd sig g];
 	end
 
 	% Test convergence
 
-	if sig < stol
+	if     sig < stol
 		converged = 1;
 		break
-	end
-
-	if dopt < dtol
+	elseif dd < dtol
 		converged = 2;
 		break
-	end
-
-	if g < gtol
+	elseif g  < gtol
 		converged = 3;
 		break
 	end
