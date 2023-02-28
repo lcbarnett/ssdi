@@ -1,4 +1,4 @@
-function [dd,L,converged,sig,iters,dhist] = opt_gd_ddx(CAK,L0,maxiters,sig,gdls,tol,hist)
+function [dd,L,converged,sig,iters,dhist] = opt_gd2_ddx(CAK,L0,maxiters,gdsig0,gdls,tol,hist)
 
 % Assumptions
 %
@@ -28,6 +28,7 @@ end
 L     = L0;
 [G,g] = cak2ddxgrad(L,CAK); % proxydynamical dependence gradient and magnitude
 dd    = cak2ddx(L,CAK);
+sig   = gdsig0;
 
 if hist
 	dhist = zeros(maxiters,3);
@@ -43,19 +44,18 @@ for iters = 2:maxiters
 
 	% Move (hopefully) down gradient and orthonormalise
 
-	Ltry  = orthonormalise(L-sig*(G/g)); % gradient descent
-	ddtry = cak2ddx(Ltry,CAK);
+	L     = orthonormalise(L-sig*(G/g)); % gradient descent
+	[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
+	ddnew = cak2ddx(L,CAK);
 
 	% If dynamical dependence smaller, accept move and increase step size;
 	% else reject move and decrease step size (similar to 1+1 ES)
 
-	if ddtry < dd
-		L     = Ltry;
-		[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
-		dd    = ddtry;
-		sig   = ifac*sig;
+	if ddnew < dd
+		dd  = ddnew;
+		sig = ifac*sig;
 	else
-		sig   = nfac*sig;
+		sig = nfac*sig;
 	end
 
 	if hist

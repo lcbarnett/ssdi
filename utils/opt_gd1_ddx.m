@@ -1,4 +1,4 @@
-function [dd,L,converged,sig,iters,dhist] = opt_gd_dds(H,L0,maxiters,sig,gdls,tol,hist)
+function [dd,L,converged,sig,iters,dhist] = opt_gd1_ddx(CAK,L0,maxiters,gdsig0,gdls,tol,hist)
 
 % Assumptions
 %
@@ -16,18 +16,19 @@ end
 if isscalar(tol)
 	stol = tol;
 	dtol = tol;
-	gtol = tol;
+	gtol = tol/10;
 else
 	stol = tol(1);
 	dtol = tol(2);
 	gtol = tol(3);
 end
 
-% Calculate dynamical dependence of initial projection
+% Calculate proxy dynamical dependence of initial projection
 
 L     = L0;
-[G,g] = trfun2ddgrad(L,H); % dynamical dependence gradient and magnitude
-dd    = trfun2dd(L,H);
+[G,g] = cak2ddxgrad(L,CAK); % proxydynamical dependence gradient and magnitude
+dd    = cak2ddx(L,CAK);
+sig   = gdsig0;
 
 if hist
 	dhist = zeros(maxiters,3);
@@ -36,7 +37,7 @@ else
 	dhist = [];
 end
 
-% Optimise: gradient descent
+% Optimise
 
 converged = 0;
 for iters = 2:maxiters
@@ -44,14 +45,14 @@ for iters = 2:maxiters
 	% Move (hopefully) down gradient and orthonormalise
 
 	Ltry  = orthonormalise(L-sig*(G/g)); % gradient descent
-	ddtry = trfun2dd(Ltry,H);
+	ddtry = cak2ddx(Ltry,CAK);
 
 	% If dynamical dependence smaller, accept move and increase step size;
 	% else reject move and decrease step size (similar to 1+1 ES)
 
 	if ddtry < dd
 		L     = Ltry;
-		[G,g] = trfun2ddgrad(L,H); % dynamical dependence gradient and magnitude
+		[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
 		dd    = ddtry;
 		sig   = ifac*sig;
 	else

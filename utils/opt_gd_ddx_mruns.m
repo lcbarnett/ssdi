@@ -1,4 +1,4 @@
-function [dopt,Lopt,conv,iopt,sopt,cput,ohist] = opt_gd_ddx_mruns(CAK,L0,niters,sig0,gdls,gdtol,hist,pp)
+function [dopt,Lopt,conv,iopt,sopt,cput,ohist] = opt_gd_ddx_mruns(CAK,L0,niters,gdes,gdsig0,gdls,gdtol,hist,pp)
 
 if nargin < 9 || isempty(pp), pp = false; end
 
@@ -20,9 +20,13 @@ end
 
 if pp
 	parfor k = 1:nruns
-		fprintf('GD/ES pre-optimisation parallel run %4d of %4d : ',k,nruns);
+		fprintf('GD/ES(%d) pre-optimisation parallel run %4d of %4d : ',gdes,k,nruns);
 		tcpu = cputime;
-		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_ddx(CAK,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
+		switch gdes
+			case 1, [dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd1_ddx(CAK,L0(:,:,k),niters,gdsig0,gdls,gdtol,hist);
+			case 2, [dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd2_ddx(CAK,L0(:,:,k),niters,gdsig0,gdls,gdtol,hist);
+			otherwise, error('unknown GD/ES strategy');
+		end
 		cput(k) = cputime-tcpu;
 		fprintf('dd = %.4e : sig = %.4e : ',dopt(k),sopt(k));
 		if conv(k) > 0, fprintf('converged(%d)',conv(k)); else, fprintf('unconverged '); end
@@ -30,15 +34,20 @@ if pp
 	end
 else
 	for k = 1:nruns
-		fprintf('GD/ES pre-optimisation serial run %4d of %4d : ',k,nruns);
+		fprintf('GD/ES(%d) pre-optimisation serial run %4d of %4d : ',gdes,k,nruns);
 		tcpu = cputime;
-		[dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd_ddx(CAK,L0(:,:,k),niters,sig0,gdls,gdtol,hist);
+		switch gdes
+			case 1, [dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd1_ddx(CAK,L0(:,:,k),niters,gdsig0,gdls,gdtol,hist);
+			case 2, [dopt(k),Lopt(:,:,k),conv(k),sopt(k),iopt(k),ohist{k}] = opt_gd2_ddx(CAK,L0(:,:,k),niters,gdsig0,gdls,gdtol,hist);
+			otherwise, error('unknown GD/ES strategy');
+		end
 		cput(k) = cputime-tcpu;
 		fprintf('dd = %.4e : sig = %.4e : ',dopt(k),sopt(k));
 		if conv(k) > 0, fprintf('converged(%d)',conv(k)); else, fprintf('unconverged '); end
 		fprintf(' in %4d iterations : CPU secs = %6.2f\n',iopt(k),cput(k));
 	end
 end
+
 % Sort everything by dynamical dependence
 
 [dopt,sidx] = sort(dopt);

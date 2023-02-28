@@ -22,11 +22,13 @@ defvar('ctol',     1e-6        ); % hyperplane clustering tolerance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 defvar('niterso',  10000       ); % pre-optimisation iterations
-defvar('sig0o',    0.1         ); % optimisation (gradient descent) initial step size
+defvar('gdeso',    2           ); % gradient-descent ES version (1 or 2)
+defvar('gdsig0o',  0.1         ); % optimisation (gradient descent) initial step size
 defvar('gdlso',    2           ); % gradient-descent "line search" parameters
 defvar('gdtolo',   1e-10       ); % gradient descent convergence tolerance
 defvar('histo',    true        ); % calculate optimisation history?
 defvar('ppo',      false       ); % parallelise multiple runs?
+gdeso
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -67,7 +69,7 @@ L0o = Lp(:,:,uidx);
 % Multiple optimisation runs
 
 st = tic;
-[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,niterso,sig0o,gdlso,gdtolo,histo,ppo);
+[dopto,Lo,convp,iopto,sopto,cputo,ohisto] = opt_gd_dds_mruns(H,L0o,niterso,gdeso,gdsig0o,gdlso,gdtolo,histo,ppo);
 et = toc(st);
 
 % Inverse-transform Lo back for un-decorrelated residuals
