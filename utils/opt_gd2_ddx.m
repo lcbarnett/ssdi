@@ -26,7 +26,7 @@ end
 % Calculate proxy dynamical dependence of initial projection
 
 L     = L0;
-[G,g] = cak2ddxgrad(L,CAK); % proxydynamical dependence gradient and magnitude
+[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
 dd    = cak2ddx(L,CAK);
 sig   = gdsig0;
 
@@ -37,19 +37,19 @@ else
 	dhist = [];
 end
 
-% Optimise
+% Optimise: gradient descent (variant 2)
 
 converged = 0;
 for iters = 2:maxiters
 
-	% Move (hopefully) down gradient and orthonormalise
+	% Move (hopefully) down gradient
 
 	L     = orthonormalise(L-sig*(G/g)); % gradient descent
 	[G,g] = cak2ddxgrad(L,CAK); % proxy dynamical dependence gradient and magnitude
 	ddnew = cak2ddx(L,CAK);
 
-	% If dynamical dependence smaller, accept move and increase step size;
-	% else reject move and decrease step size (similar to 1+1 ES)
+	% If dynamical dependence smaller than curent optimum, update current optimum
+	% and increase step size; else decrease step size (similar to 1+1 ES)
 
 	if ddnew < dd
 		dd  = ddnew;

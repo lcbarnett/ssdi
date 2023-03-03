@@ -37,18 +37,18 @@ else
 	dhist = [];
 end
 
-% Optimise: gradient descent
+% Optimise: gradient descent (variant 1)
 
 converged = 0;
 for iters = 2:maxiters
 
-	% Move (hopefully) down gradient and orthonormalise
+	% Move (hopefully) down gradient
 
 	Ltry  = orthonormalise(L-sig*(G/g)); % gradient descent
 	ddtry = trfun2dd(Ltry,H);
 
-	% If dynamical dependence smaller, accept move and increase step size;
-	% else reject move and decrease step size (similar to 1+1 ES)
+	% If dynamical dependence smaller than current optimum, accept move and increase
+	% step size; else reject move and decrease step size (similar to 1+1 ES)
 
 	if ddtry < dd
 		L     = Ltry;
