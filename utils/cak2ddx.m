@@ -20,7 +20,7 @@ D = 0;
 for k = 1:r
 	LCAKk = L'*CAK(:,:,k);
 	LCAKLTk = LCAKk*L;
-	D1k = LCAKk.*LCAKk;
-	D2k = LCAKLTk.*LCAKLTk;
+	D1k = LCAKk.^2;
+	D2k = LCAKLTk.^2;
 	D = D + sum(D1k(:)) - sum(D2k(:));
 end
