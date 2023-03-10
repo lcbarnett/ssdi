@@ -2,8 +2,8 @@ function  CE = ces2ce(L,CES,G0c,DD)
 
 % Calculate causal emergence of projection L
 %
-% To calculate CE sequence CES and covariance matrix
-% lower Cholesky factor G0c, see ac2ces.
+% To calculate CE sequence CES (the Sigma_i) and covariance matrix
+% lower Cholesky factor G0c; see ac2ces.
 %
 % NOTE 1: assumes uncorrelated residuals
 % NOTE 2: projection L MUST be orthonormal!!!

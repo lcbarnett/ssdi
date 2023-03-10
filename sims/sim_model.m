@@ -21,6 +21,7 @@ defvar('rho',     0.9   ); % spectral norm (< 1)
 defvar('rmii',    1     ); % residuals multiinformation; 0 for zero correlation
 defvar('fres',    []    ); % frequency resolution (empty for automatic)
 defvar('nsics',   0     ); % number of samples for spectral integration check (0 for no check)
+defvar('aclmax',  []    ); % maximum autocovariance lags (empty for no autocovariance calculation)
 defvar('mseed',   0     ); % model random seed (0 to use current rng state)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,7 +56,6 @@ else
 	H = ss2trfun(A,C,K,fres);               % transfer function
 	mdescript = sprintf('%d-variable ISS(%d)',n,r);
 end
-fprintf('\nFrequency resolution = %d (integration error = %e)\n\n',fres,ierr);
 rng_restore(rstate);
 
 % Spectral resolution accuracy check
@@ -66,14 +66,26 @@ if nsics > 0
 	if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
 end
 
+if ~isempty(aclmax)
+	if varmod
+		[G,acl] = var_to_autocov(ARA,V,aclmax);
+	else
+		[G,acl] = ss_to_autocov(A,C,K,V,aclmax);
+	end
+	G0 = G(:,:,1);
+end
+
 % Model info
 
-fprintf('--------------------------------------------\n');
+fprintf('\n--------------------------------------------\n');
 fprintf('Model                : %s\n',mdescript);
 fprintf('--------------------------------------------\n');
 fprintf('Dimension            : %d\n',n);
 fprintf('Complexity (CAK)     : %d x %d x %d\n',size(CAK,1),size(CAK,2),size(CAK,3));
 fprintf('Frequency resolution : %d\n',size(H,3)-1);
+if ~isempty(aclmax)
+	fprintf('Autocovariance lags  : %d\n',acl);
+end
 fprintf('--------------------------------------------\n\n');
 
 % Optionally display causal graph
