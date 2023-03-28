@@ -14,6 +14,11 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+defvar('moddir',   tempdir     );  % model directory
+defvar('modname',  'sim_model' );  % model filename root
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 defvar('nsamps',   100         ); % number of sample random projections
 defvar('iseed',    0           ); % initialisation random seed (0 to use current rng state)
 
@@ -28,7 +33,17 @@ defvar('gpplot',   2           ); % Gnuplot display? (0 - generate command files
 
 assert(exist('mdim','var'),'Must supply macro dimension ''mdim''');
 
-fprintf('\n%s: CE calculation for m = %d\n',mdescript,mdim);
+% Load model
+
+modfile = [fullfile(moddir,modname) '.mat'];
+fprintf('\n*** loading model from ''%s''... ',modfile);
+load(modfile);
+fprintf('done\n\n');
+
+n = size(V0,1);
+m = mdim;
+
+fprintf('\n%s: CE calculation for m = %d\n',mdescript,m);
 
 fprintf('\nCalculating the Sigma_i ');
 st = tic;

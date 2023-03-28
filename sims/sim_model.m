@@ -7,9 +7,9 @@ defvar('modname', 'sim_model'); % model filename root
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-varmod = exist('G','var'); % for a VAR model, specify a connectivity matrix or a scalar dimension
+varmod = exist('CON','var'); % for a VAR model, specify a connectivity matrix or a scalar dimension
 if varmod % VAR model
-	if isscalar(G), n = G; G = ones(n); else, n = size(G,1); end;
+	if isscalar(CON), n = CON; CON = ones(n); else, n = size(CON,1); end;
 	defvar('r', 7   ); % VAR model order
 	defvar('w', 1   ); % VAR coefficients decay parameter
 else      % fully-connected state-space model
@@ -32,10 +32,13 @@ defvar('gvdisp',  true    ); % GraphViz display? Empty for no action, true to di
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Generate random VAR or ISS model
+
+% TODO: decorrelation of residuals invalidates CE calculations!
+
 rstate = rng_seed(mseed);
-V0 = corr_rand(n,rmii); % residuals covariance matrix
+V0 = corr_rand(n,rmii); % residuals covariance (actually correlation) matrix
 if varmod
-	ARA0 = var_rand(G,r,rho,w);             % random VAR model
+	ARA0 = var_rand(CON,r,rho,w);           % random VAR model
 	gc = var_to_pwcgc(ARA0,V0);             % causal graph
 	[ARA,V] = transform_var(ARA0,V0);       % transform model to decorrelated-residuals form
 	[A,C,K] = var_to_ss(ARA);               % equivalent ISS model
@@ -65,6 +68,8 @@ if nsics > 0
 	derr = dds_check(A,C,K,H,mdim,nsics); % spectral integration check
 	if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
 end
+
+% Optionally calculate autocovariance sequence G
 
 if ~isempty(aclmax)
 	if varmod
@@ -99,7 +104,13 @@ end
 
 % Save model
 
+% TODO - save more stuff
+
 modfile = [fullfile(moddir,modname) '.mat'];
 fprintf('*** saving model in ''%s''... ',modfile);
-save(modfile,'V0','CAK','H','mdescript');
+if isempty(aclmax)
+	save(modfile,'V0','CAK','H','gc','mdescript');
+else
+	save(modfile,'V0','CAK','H','gc','G','G0','mdescript');
+end
 fprintf('done\n\n');
