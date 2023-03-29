@@ -2,6 +2,9 @@ function [G,mG] = cak2ddxgrad(L,CAK)
 
 % Calculate gradient of proxy dynamical dependence
 %
+% L        orthonormal subspace basis
+% A,C,K    ISS parameters
+%
 % For an innovations-form state-space model with parameters (A,C,K)
 %
 %     CAK_k, k = 1,...,r is the sequence of n x n matrices CA^{k-1}K
@@ -10,8 +13,7 @@ function [G,mG] = cak2ddxgrad(L,CAK)
 %
 % For a VAR model with coefficients sequence A, we may supply simply CAK = A.
 %
-% NOTE 1: assumes uncorrelated residuals
-% NOTE 2: projection L orthogonal!!!
+% NOTE: assumes identity residuals covariance matrix
 
 r = size(CAK,3);
 n = size(L,1);

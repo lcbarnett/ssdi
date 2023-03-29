@@ -1,10 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Set up SS or VAR model, calculate transfer function, CAK sequence, etc.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-defvar('moddir',  tempdir    ); % model directory
-defvar('modname', 'sim_model'); % model filename root
-
+% Set up SS or VAR model
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 varmod = exist('CON','var'); % for a VAR model, specify a connectivity matrix or a scalar dimension
@@ -17,47 +12,49 @@ else      % fully-connected state-space model
 	defvar('r', 3*n ); % hidden state dimension
 end
 
-defvar('rho',     0.9   ); % spectral norm (< 1)
-defvar('rmii',    1     ); % residuals multiinformation; 0 for zero correlation
-defvar('fres',    []    ); % frequency resolution (empty for automatic)
-defvar('nsics',   0     ); % number of samples for spectral integration check (0 for no check)
-defvar('aclmax',  []    ); % maximum autocovariance lags (empty for no autocovariance calculation)
-defvar('mseed',   0     ); % model random seed (0 to use current rng state)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+defvar('moddir',   tempdir    ); % model directory
+defvar('modname', 'sim_model' ); % model filename root
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+defvar('rho',      0.9   ); % spectral norm (< 1)
+defvar('rmii',     1     ); % residuals multiinformation; 0 for zero correlation
+defvar('fres',     []    ); % frequency resolution (empty for automatic)
+defvar('nsics',    0     ); % number of samples for spectral integration check (0 for no check)
+defvar('mseed',    0     ); % model random seed (0 to use current rng state)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 defvar('gvprog',  'neato' ); % GraphViz program/format (also try 'neato', 'fdp')
-defvar('gvdisp',  true    ); % GraphViz display? Empty for no action, true to display, false to just generate files)
+defvar('gvdisp',   true   ); % GraphViz display? Empty for no action, true to display, false to just generate files)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Generate random VAR or ISS model
-
-% TODO: decorrelation of residuals invalidates CE calculations!
+%
+% NOTE: parameters, etc., with 0 suffix are for untransformed model!
 
 rstate = rng_seed(mseed);
 V0 = corr_rand(n,rmii); % residuals covariance (actually correlation) matrix
 if varmod
+	mdescript = sprintf('%d-variable VAR(%d)',n,r);
 	ARA0 = var_rand(CON,r,rho,w);           % random VAR model
 	gc = var_to_pwcgc(ARA0,V0);             % causal graph
-	[ARA,V] = transform_var(ARA0,V0);       % transform model to decorrelated-residuals form
-	[A,C,K] = var_to_ss(ARA);               % equivalent ISS model
+	[A0,C0,K0] = var_to_ss(ARA0);           % equivalent ISS model
 	if isempty(fres)
-		[fres,ierr] = var2fres(ARA,V);
+		[fres,ierr] = var2fres(ARA0,V0);
 	end
-	CAK = ARA;                              % CAK sequence for pre-optimisation
-	H = var2trfun(ARA,fres);                % transfer function
-	mdescript = sprintf('%d-variable VAR(%d)',n,r);
+	modcomp = r*n*n + (n*(n+1))/2;          % model complexity
 else
+	mdescript = sprintf('%d-variable ISS(%d)',n,r);
 	[A0,C0,K0] = iss_rand(n,r,rho);         % random ISS model
 	gc = ss_to_pwcgc(A0,C0,K0,V0);          % causal graph
-	[A,C,K,V] = transform_ss(A0,C0,K0,V0);  % transform model to decorrelated-residuals form
 	if isempty(fres)
-		[fres,ierr] = ss2fres(A,C,K,V);
+		[fres,ierr] = ss2fres(A0,C0,K0,V0);
 	end
-	CAK = iss2cak(A,C,K);                   % CAK sequence for pre-optimisation
-	H = ss2trfun(A,C,K,fres);               % transfer function
-	mdescript = sprintf('%d-variable ISS(%d)',n,r);
+	modcomp = (2*n+1)*r + (n*(n+1))/2;      % model complexity
 end
 rng_restore(rstate);
 
@@ -69,29 +66,15 @@ if nsics > 0
 	if derr > 1e-12, fprintf(2,'WARNING: spectral DD calculation may be inaccurate!\n\n'); end
 end
 
-% Optionally calculate autocovariance sequence G
-
-if ~isempty(aclmax)
-	if varmod
-		[G,acl] = var_to_autocov(ARA,V,aclmax);
-	else
-		[G,acl] = ss_to_autocov(A,C,K,V,aclmax);
-	end
-	G0 = G(:,:,1);
-end
-
 % Model info
 
-fprintf('\n--------------------------------------------\n');
-fprintf('Model                : %s\n',mdescript);
-fprintf('--------------------------------------------\n');
-fprintf('Dimension            : %d\n',n);
-fprintf('Complexity (CAK)     : %d x %d x %d\n',size(CAK,1),size(CAK,2),size(CAK,3));
-fprintf('Frequency resolution : %d\n',size(H,3)-1);
-if ~isempty(aclmax)
-	fprintf('Autocovariance lags  : %d\n',acl);
-end
-fprintf('--------------------------------------------\n\n');
+fprintf('\n---------------------------------------\n');
+fprintf('Model            : %s\n',mdescript);
+fprintf('---------------------------------------\n');
+fprintf('Dimension        : %d\n',n);
+fprintf('Complexity       : %d\n',modcomp);
+fprintf('Freq. resolution : %d\n',fres);
+fprintf('---------------------------------------\n\n');
 
 % Optionally display causal graph
 
@@ -104,13 +87,11 @@ end
 
 % Save model
 
-% TODO - save more stuff
-
 modfile = [fullfile(moddir,modname) '.mat'];
 fprintf('*** saving model in ''%s''... ',modfile);
-if isempty(aclmax)
-	save(modfile,'V0','CAK','H','gc','mdescript');
+if varmod
+	save(modfile,'mdescript','varmod','n','r','rho','rmii','V0','ARA0','A0','C0','K0','gc','fres','modcomp');
 else
-	save(modfile,'V0','CAK','H','gc','G','G0','mdescript');
+	save(modfile,'mdescript','varmod','n','r','rho','rmii','V0',       'A0','C0','K0','gc','fres','modcomp');
 end
 fprintf('done\n\n');

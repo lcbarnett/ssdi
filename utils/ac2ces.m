@@ -1,14 +1,22 @@
-function [CES,G0c] = ac2ces(G)
+function [CESRC,CRC] = ac2ces(G)
 
-% Supply autocovariance sequence G.
+% Calculate the CE Sigma_i matrices
+%
+% G        autocovariance sequence
+% CRC      right (upper) Cholesky factor of covariance matrix
+% CESRC    right (upper) Cholesky factors of the CE Sigma_i matrices
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NOTE: all calculations in UNTRANSFORMED coordinates!!! %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-G0c = chol(G(:,:,1),'lower');
+CRC = chol(G(:,:,1));
 n = size(G,1);
-CES = zeros(n,n,n);
+CESRC = zeros(n,n,n);
 for i = 1:n
 	fprintf('.');
 	Gi  = squeeze(G(:,i,2:end));
 	Gii = toeplitz(squeeze(G(i,i,1:end-1)));
-	Fi  = Gi/chol(Gii,'lower');
-	CES(:,:,i) = G0c*G0c'-Fi*Fi';
+	Fi  = Gi/chol(Gii);
+	CESRC(:,:,i) = chol(CRC'*CRC-Fi*Fi');
 end

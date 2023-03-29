@@ -3,8 +3,10 @@ function D = iss2dd(L,A,C,K)
 % Calculate dynamical dependence of projection L for
 % innovations-form state-space model with parameters A,C,K.
 %
-% NOTE 1: assumes uncorrelated residuals
-% NOTE 2: projection L MUST be orthonormal!!!
+% L        orthonormal subspace basis
+% A,C,K    ISS parameters
+%
+% NOTE: assumes identity residuals covariance matrix
 
 % Calculate residuals covariance matrix V of projected model (solve DARE)
 

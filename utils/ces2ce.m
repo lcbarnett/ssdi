@@ -1,17 +1,41 @@
-function  CE = ces2ce(L,CES,G0c,DD)
+function  [CE,DD] = ces2ce(L,H,VRC,CESRC,CRC)
 
 % Calculate causal emergence of projection L
 %
-% To calculate CE sequence CES (the Sigma_i) and covariance matrix
-% lower Cholesky factor G0c; see ac2ces.
+% L        orthonormal subspace basis
+% H        transfer function
+% VRC      right (upper) Cholesky factor of residuals covariance matrix
+% CESRC    right (upper) Cholesky factors of the CE Sigma_i matrices, as returned by ac2ces
+% CRC      right (upper) Cholesky factor of covariance matrix, as returned by ac2ces
 %
-% NOTE 1: assumes uncorrelated residuals
-% NOTE 2: projection L MUST be orthonormal!!!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NOTE: all calculations in UNTRANSFORMED coordinates!!! %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-n = size(G0c,1);
+% Calculate reduced residuals generalised covariance
+
+h = size(H,3);
+v = zeros(h,1);
+for k = 1:h % over [0,pi]
+	RHLk = VRC*H(:,:,k)'*L;
+	v(k) = sum(log(diag(chol(RHLk'*RHLk)))); % (log-determinant)/2
+end
+VRED = sum(v(1:end-1)+v(2:end))/(h-1); % integrate frequency-domain DD (trapezoidal rule) to get time-domain DD
+
+% Calculate causal emergence
+
+n = size(CRC,1);
 CEH = zeros(n,1);
 for i = 1:n
-	CEH(i) = logdet(L'*CES(:,:,i)*L);
+	CESRCLi = CESRC(:,:,i)*L;
+	CEH(i) = logdet(CESRCLi'*CESRCLi);
 end
-LG0c = L'*G0c;
-CE = -(n-1)*logdet(LG0c*LG0c') - DD + sum(CEH);
+CRCL = CRC*L;
+CE = -(n-1)*logdet(CRCL'*CRCL) + sum(CEH) - VRED;
+
+% Optionally return dynamical dependence
+
+if nargout > 1
+	RHL = VRC*L;
+	DD = VRED - 2*sum(log(diag(chol(RHL'*RHL))));
+end

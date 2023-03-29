@@ -2,6 +2,8 @@ function derr = dds_check(A,C,K,H,m,nsics,verb)
 
 % Check accuracy of spectral DD against state-space DD
 % at given scale m across a set of random projections.
+%
+% NOTE: assumes identity residuals covariance matrix
 
 if nargin < 7 || isempty(verb), verb = 1; end
 

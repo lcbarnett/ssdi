@@ -3,8 +3,10 @@ function [D,d] = trfun2dd(L,H)
 % Calculate spectral dynamical dependence of projection L
 % from transfer function H.
 %
-% NOTE 1: assumes identity residuals covariance matrix
-% NOTE 2: projection L MUST be orthonormal!!!
+% L    orthonormal subspace basis
+% H    transfer function
+%
+% NOTE: assumes identity residuals covariance matrix
 
 h = size(H,3);
 d = zeros(h,1);
