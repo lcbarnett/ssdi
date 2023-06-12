@@ -6,7 +6,7 @@ nruns = size(L0,3);
 
 dopt = zeros(1,nruns);
 Lopt = zeros(size(L0));
-conv = false(1,nruns);
+conv = zeros(1,nruns);
 iopt = zeros(1,nruns);
 sopt = zeros(1,nruns);
 cput = zeros(1,nruns);
