@@ -12,7 +12,7 @@ if nargout < 2
 	[L,~] = svd(X,0);
 %	[L,~] = qr(X,0);
 else
-	[m,n] = size(X);
+	[n,m] = size(X);
 	[U,~] = svd(X);
 %	[U,~] = qr(X);
 	L = U(:,1:m);
