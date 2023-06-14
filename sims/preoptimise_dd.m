@@ -25,7 +25,7 @@ defvar('nitersp',   10000      ); % pre-optimisation iterations
 defvar('gdesp',     2          ); % gradient-descent ES version (1 or 2)
 defvar('gdsig0p',   1          ); % pre-optimisation (gradient descent) initial step size
 defvar('gdlsp',     2          ); % gradient-descent "line search" parameters
-defvar('gdtolp',    1e-10      ); % gradient descent convergence tolerance
+defvar('gdtolp',    1e-8       ); % gradient descent convergence tolerance
 defvar('histp',     true       ); % calculate optimisation history?
 defvar('ppp',       false      ); % parallelise multiple runs?
 
