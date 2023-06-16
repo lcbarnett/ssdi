@@ -28,10 +28,13 @@ cddep = cell(nclust,1);
 csize = zeros(nclust,1);
 for c = 1:nclust
 	clust{c} = find(T == c)';
-	cddep{c} = ddep(clust{c});
 	csize(c) = numel(clust{c});
+	cdd = ddep(clust{c});
+	[~,didx] = sort(cdd,'ascend'); % sort by ascending DD within cluster
+	clust{c} = clust{c}(didx);
+	cddep{c} = cdd(didx);
 end
-[~,sidx] = sort(csize,'descend');
+[~,sidx] = sort(csize,'descend'); % sort clusters by descending size
 clust = clust(sidx);
 cddep = cddep(sidx);
 csize = csize(sidx);
