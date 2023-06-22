@@ -1,4 +1,6 @@
-function d = gmetricsxx(L)
+function d = gmetricsxx(L,maxangle)
+
+if nargin < 2 maxangle = []; end % gmetric default
 
 [n,m] = size(L);
 
@@ -8,5 +10,5 @@ d = zeros(nc,1);
 for k = 1:nc
 	v = zeros(n,m);
 	v(c(k,:),:) = eye(m);
-	d(k) = gmetric(L,v,true);
+	d(k) = gmetric(L,v,maxangle);
 end

@@ -1,6 +1,6 @@
 function d = gmetrics(L,maxangle)
 
-if nargin < 2 || isempty(maxangle), maxangle = false; end
+if nargin < 2 maxangle = []; end % gmetric default
 
 N = size(L,3);
 d = zeros(N);
