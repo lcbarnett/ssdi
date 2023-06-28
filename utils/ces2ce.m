@@ -1,4 +1,4 @@
-function  [CE,DD] = ces2ce(L,H,VRC,CESRC,CRC)
+function  [CE,DD,COI] = ces2ce(L,H,VRC,CESRC,CRC)
 
 % Calculate causal emergence of projection L
 %
@@ -38,4 +38,7 @@ CE = -(n-1)*logdet(CRCL'*CRCL) + sum(CEH) - VRED;
 if nargout > 1
 	RHL = VRC*L;
 	DD = VRED - 2*sum(log(diag(chol(RHL'*RHL))));
+	if nargout > 2
+		COI = CE+DD;
+	end
 end
