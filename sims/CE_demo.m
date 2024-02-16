@@ -22,7 +22,7 @@ defvar('precomp',  true        ); % precompute quantities which don't depend on 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 defvar('gpterm',  'x11'        ); % Gnuplot terminal
-defvar('gpscale',  [1,1.2]     ); % Gnuplot scale
+defvar('gpscale',  [1.5,0.65]  ); % Gnuplot scale
 defvar('gpfsize',  14          ); % Gnuplot font size
 defvar('gpplot',   2           ); % Gnuplot display? (0 - generate command files, 1 - generate image files, 2 - plot)
 
@@ -73,22 +73,27 @@ end
 et = toc(st);
 fprintf(' completed in %g seconds\n\n',et);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% NOTE CE may be computed as CI - DD %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate CE
+
+CE = CI - DD;
 
 % Plot
 
 gpname = 'CI_vs_DD';
 gpstem = fullfile(tempdir,'CI_vs_DD');
-gp_write(gpstem,[CI,DD]);
+gp_write(gpstem,[DD,CI,CE]);
 gp = gp_open(gpstem,gpterm,gpscale,gpfsize);
 fprintf(gp,'datfile = "%s.dat"\n\n',gpname);
-fprintf(gp,'set title "%s: Co-information vs Dynamical Dependence for m = %d"\n',mdescript,mdim);
 fprintf(gp,'unset key\n');
 fprintf(gp,'set grid\n');
-fprintf(gp,'set xlabel "CI"\n');
-fprintf(gp,'set ylabel "DD" norot\n');
-fprintf(gp,'set yr [0:]\n');
+fprintf(gp,'set xlabel "DD"\n');
+fprintf(gp,'set xr [0:]\n');
+fprintf(gp,'set multiplot title "%s: macrovariable dimension = %d\\n" layout 2,1\n',mdescript,mdim);
+fprintf(gp,'set title "Co-information vs Dynamical Dependence"\n');
+fprintf(gp,'set ylabel "CI" norot\n');
 fprintf(gp,'plot datfile u 1:2 w points pt 7 ps 1 not\n');
+fprintf(gp,'set title "Causal Emergence vs Dynamical Dependence"\n');
+fprintf(gp,'set ylabel "CE" norot\n');
+fprintf(gp,'plot datfile u 1:3 w points pt 7 ps 1 not\n');
+fprintf(gp,'unset multiplot\n');
 gp_close(gp,gpstem,gpterm,gpplot);
