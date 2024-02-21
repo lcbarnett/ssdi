@@ -33,6 +33,10 @@ sdir = 'experimental';
 addpath(fullfile(ssdi_root,sdir));
 fprintf('[ssdi startup] Added sub-path %s\n',sdir);
 
+sdir = 'batch';
+addpath(genpath(fullfile(ssdi_root,sdir)));
+fprintf('[ssdi startup] Added sub-path %s\n',sdir);
+
 sdir = 'testing';
 addpath(genpath(fullfile(ssdi_root,sdir)));
 fprintf('[ssdi startup] Added sub-path %s\n',sdir);
