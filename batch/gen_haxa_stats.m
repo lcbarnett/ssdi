@@ -1,4 +1,4 @@
-function gen_haxa_stats(n,N,C,datadir,dryrun)
+function theta = gen_haxa_stats(n,N,C,datadir,dryrun)
 
 % Calculate statistics (means, standard deviations, critical values) for
 % distribution of angles of random hyperplanes with a coordinate axis.
@@ -31,6 +31,14 @@ if dryrun, return; end
 % Sample angles for subspace dimension m = 1 .. n-1
 
 theta = zeros(N,n-1);
+for m = n-1:-1:2
+	fprintf('\nm = %2d of %2d\n',m,n-1);
+	for c = 1:C
+		fprintf('\tchunk %2d of %2d\n',c,C);
+		L = rand_orthonormal(n,m,S);
+		theta((c-1)*S+1:c*S,m) = acos(sqrt(sum(squeeze(L(1,:,:)).^2)));
+	end
+end
 m = 1;
 fprintf('\nm = %2d of %2d\n',m,n-1);
 for c = 1:C
@@ -38,29 +46,18 @@ for c = 1:C
 	L = rand_orthonormal(n,m,S);
 	theta((c-1)*S+1:c*S,m) = acos(abs(squeeze(L(1,:,:))));
 end
-clear L
-for m = 2:n-1
-	fprintf('\nm = %2d of %2d\n',m,n-1);
-	for c = 1:C
-		fprintf('\tchunk %2d of %2d\n',c,C);
-		L = rand_orthonormal(n,m,S);
-		theta((c-1)*S+1:c*S,m) = acos(sqrt(sum(squeeze(L(1,:,:)).^2)));
-	end
-	clear L
-end
 
 % Calculate sample statistics
 
-q = [0.001 (0.005:0.005:0.10) (0.125:0.025:0.20) (0.80:0.025:0.875) (0.90:0.005:0.995) 0.999]; % 50 quantiles as in 'jcitest'
-
-haxa_mean = mean(theta)';       % mean
-haxa_sdev = std(theta)';        % std. deviation
-haxa_cval = quantile(theta,q)'; % critical values at significance levels corresponding to q
+haxa_slev = [0.001 (0.005:0.005:0.10) (0.125:0.025:0.20) (0.80:0.025:0.875) (0.90:0.005:0.995) 0.999]; % 50 significance levels as in 'jcitest'
+haxa_mean = mean(theta)'; % mean
+haxa_sdev = std(theta)';  % std. deviation
+haxa_cval = quantile(theta,haxa_slev)'; % critical values at significance levels corresponding to haxa_slev
 
 % Save results
 
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 ffname = fullfile(datadir,sprintf('haxa_stats_n%03d_N%d.mat',n,N));
 fprintf('\nSaving data file: ''%s'' ... ',ffname);
-save(ffname,'n','N','haxa_mean','haxa_sdev','haxa_cval');
+save(ffname,'n','N','haxa_mean','haxa_sdev','haxa_cval','haxa_slev');
 fprintf('done\n\n');
