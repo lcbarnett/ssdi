@@ -26,16 +26,19 @@ if nargin < 6 || isempty(dryrun),  dryrun  = false;   end
 S = N/C; % C is number of chunks, S is chunksize
 assert(C*S == N,'C must divide N exactly');
 
-maxcMB = (S*(n-1)*n*8)/1000/1000;
-fprintf('\nMaximum chunk size ~ %g MB\n',maxcMB);
+n1 = n-1;
+
+memreq = n1*(N + n*S + 2 + 50)*8/1000/1000;
+fprintf('\nMemory requirements: at least %g MB\n',memreq);
 
 if dryrun, return; end
 
 % Sample angles for subspace dimension m = 1 .. n-1
 
-theta = zeros(N,n-1);
-for m = n-1:-1:2
-	fprintf('\nm = %2d of %2d\n',m,n-1);
+theta = zeros(N,n1);
+L = zeros(n,n1,S); % preallocate
+for m = n1:-1:2
+	fprintf('\nm = %2d of %2d\n',m,n1);
 	for c = 1:C
 		fprintf('\tchunk %2d of %2d\n',c,C);
 		L = rand_orthonormal(n,m,S);
@@ -43,7 +46,7 @@ for m = n-1:-1:2
 	end
 end
 m = 1;
-fprintf('\nm = %2d of %2d\n',m,n-1);
+fprintf('\nm = %2d of %2d\n',m,n1);
 for c = 1:C
 	fprintf('\tchunk %2d of %2d\n',c,C);
 	L = rand_orthonormal(n,m,S);
