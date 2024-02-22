@@ -1,16 +1,34 @@
-function cvals = get_haxa_cvals(n,mdim,slev,haxa_stats_file)
+function cvals = get_haxa_cvals(n,mdim,slev,datadir,hstag)
 
 % Get critical values for distribution of angles of random hyperplanes with a coordinate axis.
+%
+% n          dimension of enclosing space
+% mdim       vector of hyperplane dimensions
+% slev       vector of significance levels
+% datadir    stats file directory
+% hstag      stats file ID tag
 
-% Read stats file
+% Parameter defaults
 
-assert(exist(haxa_stats_file,'file'),'Angle stats file ''%s'' not found',haxa_stats_file);
-load(haxa_stats_file);
-fprintf('Read angle stats from ''%s''\n',haxa_stats_file);
+if nargin < 2 || isempty(mdim),    mdim    = 1:n-1;       end % all
+if nargin < 3 || isempty(slev),    slev    = [0.05 0.95]; end % standard tails
+if nargin < 4 || isempty(datadir), datadir = tempdir;     end % temp directory
+if nargin < 5                      hstag   = '';          end % no tag
 
 assert(isvector(mdim),'Hyperplane dimension(s) must be a vector');
 assert(isvector(slev),'Significance level(s) must be a vector');
-assert(all(slev > min(haxa_slev)-eps/2 & slev < max(haxa_slev)-eps/2),'Some significance level(s) out of bounds');
+
+% Read stats file
+
+if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
+if ~isempty(hstag), hstag = ['_' hstag]; end
+haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
+assert(exist(haxa_stats_file,'file'),'Hyperplane angle stats file ''%s'' not found',haxa_stats_file);
+fprintf('Reading hyperplane angle stats from ''%s''... ',haxa_stats_file);
+load(haxa_stats_file);
+fprintf('sample size = %d\n',N);
+
+assert(all(slev > min(haxa_slev)-eps & slev < max(haxa_slev)-eps),'Some significance level(s) out of bounds (must be in range 0.001 - 0.999)');
 
 nmdim = length(mdim);
 nslev = length(slev);
