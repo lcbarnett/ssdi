@@ -1,4 +1,4 @@
-function theta = gen_haxa_stats(n,N,C,datadir,hstag,dryrun)
+function theta = gen_haxa_stats(n,N,C,datadir,hstag,full,dryrun)
 
 % Calculate statistics (means, standard deviations, critical values) for
 % distribution of angles of random hyperplanes with a coordinate axis.
@@ -8,6 +8,7 @@ function theta = gen_haxa_stats(n,N,C,datadir,hstag,dryrun)
 % C          number of "chunks" to divide sample into to avoid memory problems
 % datadir    stats file directory
 % hstag      stats file ID tag
+% full       stats file includes all samples
 % dryrun     just calculate estimate of maximum chunk size and return
 %
 % Stats are calculated for hyperplanes of dimension 1 .. n-1. Critical values
@@ -20,18 +21,23 @@ function theta = gen_haxa_stats(n,N,C,datadir,hstag,dryrun)
 if nargin < 2 || isempty(N),       N       = 100000;  end
 if nargin < 3 || isempty(C),       C       = 10;      end
 if nargin < 4 || isempty(datadir), datadir = tempdir; end
-if nargin < 5                      hstag   = '';      end % no tag
-if nargin < 6 || isempty(dryrun),  dryrun  = false;   end
+if nargin < 5                      hstag   = '';      end
+if nargin < 6 || isempty(full),    full    = false;   end
+if nargin < 7 || isempty(dryrun),  dryrun  = false;   end
 
 S = N/C; % C is number of chunks, S is chunksize
 assert(C*S == N,'C must divide N exactly');
 
 n1 = n-1;
 
-memreq = n1*(N + n*S + 2 + 50)*8/1000/1000;
-fprintf('\nMemory requirements: at least %g MB\n',memreq);
+memreq = n1*(N + n*S + 2 + 50)*8;
+if     memreq < 1000,           fprintf('\nMemory requirements > %d B\n',   memreq);
+elseif memreq < 1000*1000,	    fprintf('\nMemory requirements > %.2f KB\n',memreq/1000);
+elseif memreq < 1000*1000*1000, fprintf('\nMemory requirements > %.2f MB\n',memreq/1000/1000);
+else,                           fprintf('\nMemory requirements > %.2f GB\n',memreq/1000/1000/1000);
+end
 
-if dryrun, return; end
+if dryrun, theta = []; return; end
 
 % Sample angles for subspace dimension m = 1 .. n-1
 
@@ -64,7 +70,13 @@ haxa_cval = quantile(theta,haxa_slev)'; % critical values at significance levels
 
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 if ~isempty(hstag), hstag = ['_' hstag]; end
-haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
-fprintf('\nSaving data file: ''%s'' ... ',haxa_stats_file);
-save(haxa_stats_file,'n','N','haxa_mean','haxa_sdev','haxa_cval','haxa_slev');
+if full
+	haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s_full.mat',n,hstag));
+	fprintf('\nSaving data file: ''%s'' ... ',haxa_stats_file);
+	save(haxa_stats_file,'n','N','theta','haxa_mean','haxa_sdev','haxa_cval','haxa_slev');
+else
+	haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
+	fprintf('\nSaving data file: ''%s'' ... ',haxa_stats_file);
+	save(haxa_stats_file,'n','N','haxa_mean','haxa_sdev','haxa_cval','haxa_slev');
+end
 fprintf('done\n\n');

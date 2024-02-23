@@ -11,9 +11,6 @@ codedir=~/git/ssdi
 # current directory (the directory this script is run in - log files will go here)
 currdir=$(pwd -P)
 
-# Matlab invocation
-runmatlab="nohup nice matlab -nojvm -nodisplay"
-
 # Parameters
 
 N=1000000
@@ -29,6 +26,6 @@ for n in 10 20 30 40 50 60 70 80 90 100; do
 	matcmds="clear; gen_haxa_stats($n,$N,$C,'$currdir'); quit"
 
 	# run Matlab
-	cd $codedir && $runmatlab -r "$matcmds" > $logfile < /dev/null 2>&1 &
+	cd $codedir && nohup nice matlab -nojvm -nodisplay -r "$matcmds" > $logfile < /dev/null 2>&1 &
 
 done
