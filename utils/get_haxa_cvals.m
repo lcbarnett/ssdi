@@ -23,7 +23,7 @@ assert(isvector(slev),'Significance level(s) must be a vector');
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 if ~isempty(hstag), hstag = ['_' hstag]; end
 haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
-assert(exist(haxa_stats_file,'file'),'Hyperplane angle stats file ''%s'' not found',haxa_stats_file);
+assert(exist(haxa_stats_file) == 2,'Hyperplane angle stats file ''%s'' not found',haxa_stats_file);
 fprintf('Reading hyperplane angle stats from ''%s''... ',haxa_stats_file);
 load(haxa_stats_file);
 fprintf('sample size = %d\n',N);

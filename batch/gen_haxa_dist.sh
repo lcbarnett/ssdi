@@ -23,7 +23,7 @@ for n in 10 20 30 40 50 60 70 80 90 100; do
 	logfile=$currdir/$scriptname\_n$(printf "%03d" $n).log
 
 	# Matlab commands
-	matcmds="clear; gen_haxa_stats($n,$N,$C,'$currdir'); quit"
+	matcmds="clear; gen_haxa_dist($n,$N,$C,'$currdir'); quit"
 
 	# run Matlab
 	cd $codedir && nohup nice matlab -nojvm -nodisplay -r "$matcmds" > $logfile < /dev/null 2>&1 &
