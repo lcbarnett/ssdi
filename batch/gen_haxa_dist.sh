@@ -17,7 +17,7 @@ N=1000000
 C=10
 
 # run multiple concurrent Matlab sessions
-for n in 10 20 30 40 50 60 70 80 90 100; do
+for n in $(seq 10 20); do
 
 	# the log file
 	logfile=$currdir/$scriptname\_n$(printf "%03d" $n).log
