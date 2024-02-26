@@ -53,4 +53,8 @@ assert(exist(mvgc_path,'dir') == 7,'bad MVGC path: ''%s'' does not exist or is n
 run(fullfile(mvgc_path,'startup'));
 clear mvgc_path
 
+global local_data_dir haxa_data_dir
+local_data_dir = (fullfile(ssdi_root,'data'));
+haxa_data_dir = (fullfile(local_data_dir,'haxa'));
+
 fprintf('[ssdi startup] Initialised (you may re-run `startup'' at any time)\n');

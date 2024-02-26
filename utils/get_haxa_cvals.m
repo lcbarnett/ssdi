@@ -10,16 +10,19 @@ function cvals = get_haxa_cvals(n,mdim,slev,datadir,hstag)
 
 % Parameter defaults
 
-if nargin < 2 || isempty(mdim),    mdim    = 1:n-1;       end % all
-if nargin < 3 || isempty(slev),    slev    = [0.05 0.95]; end % standard tails
-if nargin < 4 || isempty(datadir), datadir = tempdir;     end % temp directory
-if nargin < 5                      hstag   = '';          end % no tag
+global haxa_data_dir
+
+if nargin < 2 || isempty(mdim),    mdim    = 1:n-1;         end % all
+if nargin < 3 || isempty(slev),    slev    = [0.05 0.95];   end % standard tails
+if nargin < 4 || isempty(datadir), datadir = haxa_data_dir; end % local haxa stats directory
+if nargin < 5                      hstag   = '';            end % no tag
 
 assert(isvector(mdim),'Hyperplane dimension(s) must be a vector');
 assert(isvector(slev),'Significance level(s) must be a vector');
 
 % Read stats file
 
+assert(~isempty(datadir),'Stats directory path empty!');
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 if ~isempty(hstag), hstag = ['_' hstag]; end
 haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
