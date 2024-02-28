@@ -6,7 +6,7 @@ function theta = make_haxa_stats(n,N,datadir,hstag)
 % n          dimension of enclosing space
 % N          stats sample size
 % datadir    stats file directory
-% hstag      stats file ID tag
+% hstag      stats file ID tag (optional)
 %
 % Statistics are calculated for hyperplanes of dimension 1 .. n-1 from saved
 % empirical distributions. Critical values are calculated for a set of 50
@@ -17,11 +17,11 @@ function theta = make_haxa_stats(n,N,datadir,hstag)
 % Parameter defaults
 
 if nargin < 2 || isempty(N),       N       = 100000;  end
-if nargin < 3 || isempty(datadir), datadir = tempdir; end
-if nargin < 4                      hstag   = '';      end % optional stats ID tag
+if nargin < 3 || isempty(datadir), datadir = pwd;     end
 
 % Load hyperplane angle empirical distributions
 
+assert(~isempty(datadir),'Stats directory path empty!');
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 haxa_dist_file = fullfile(datadir,sprintf('haxa_dist_n%03d_N%d.mat',n,N));
 assert(exist(haxa_dist_file) == 2,'Hyperplane angle distribution file ''%s'' not found',haxa_dist_file);
@@ -47,8 +47,7 @@ fprintf('done\n\n');
 
 % Save results
 
-if ~isempty(hstag), hstag = ['_' hstag]; end
-haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d%s.mat',n,hstag));
+haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d.mat',n));
 fprintf('Saving hyperplane angle stats file: ''%s'' ... ',haxa_stats_file);
 save(haxa_stats_file,'n','N','haxa_mean','haxa_sdev','haxa_cval','haxa_slev');
 fprintf('done\n\n');

@@ -14,7 +14,7 @@ function gen_haxa_dist(n,N,datadir,dryrun)
 % Parameter defaults
 
 if nargin < 2 || isempty(N),       N       = 100000;  end
-if nargin < 3 || isempty(datadir), datadir = tempdir; end
+if nargin < 3 || isempty(datadir), datadir = pwd;     end
 if nargin < 4 || isempty(dryrun),  dryrun  = false;   end
 
 h = floor(n/2);
