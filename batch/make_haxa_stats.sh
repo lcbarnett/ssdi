@@ -16,17 +16,10 @@ logfile=$currdir/$scriptname.log
 # Parameters
 
 N=1000000
-nlist=$(seq 2 10);
+nmax=100
 
-matcmds="clear; \
-nlist = [$(echo $nlist)]; \
-for n = nlist, \
-	make_haxa_stats(n,$N,'$currdir'); \
-end; \
-quit"
-
-echo "matcmds = [$matcmds]"
+matcmds="clear; make_haxa_stats($nmax,$N,'$currdir'); quit"
 
 # run Matlab
-cd $codedir
-nohup nice matlab -nojvm -nodisplay -r "$matcmds" > $logfile < /dev/null 2>&1 &
+
+cd $codedir && nohup nice matlab -nojvm -nodisplay -r "$matcmds" > $logfile < /dev/null 2>&1 &

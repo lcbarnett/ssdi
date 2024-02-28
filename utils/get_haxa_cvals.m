@@ -26,29 +26,25 @@ assert(isvector(slev),'Significance level(s) must be a vector');
 
 assert(~isempty(datadir),'Stats directory path empty!');
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
-haxa_stats_file = fullfile(datadir,sprintf('haxa_stats_n%03d.mat',n));
+haxa_stats_file = fullfile(datadir,'haxa_stats.mat');
 assert(exist(haxa_stats_file) == 2,'Hyperplane angle stats file ''%s'' not found',haxa_stats_file);
 if verb, fprintf('Reading hyperplane angle stats from ''%s''... ',haxa_stats_file); end
 load(haxa_stats_file);
-if verb, fprintf('sample size = %d\n',N); end
+if verb, fprintf('max. dimension = %d, sample size = %d\n',nmax,N); end
 
-slev_min = min(haxa_slev);
-slev_max = max(haxa_slev);
+assert(n >= 2 && n <= nmax,        'Enclosing space dimension out of range 2 - %d',nmax);
+assert(all(mdim > 0 & mdim < n),   'Some hyperplane dimension(s) out of range 1 - %d',n-1);
+assert(all(slev >= 0 & slev <= 1), 'Some hyperplane significance levels(s) out of range 0 - 1');
 
-%assert(all(slev > min(haxa_slev)-eps & slev < max(haxa_slev)-eps),'Some significance level(s) out of bounds (must be in range 0.001 - 0.999)');
+haxa_cvaln = haxa_cval{n};
+
+% Get critical values (interpolate critical values in haxa_cvaln for significance levels in haxa_slev)
 
 nmdim = length(mdim);
 nslev = length(slev);
-
-% Get critical values (interpolate critical values in haxa_cval for significance levels in haxa_slev)
-
 cvals = nan(nmdim,nslev);
 for k = 1:nslev
-	if     slev(k) < slev_min, cvals(:,k) = 0;
-	elseif slev(k) > slev_max, cvals(:,k) = pi/2;
-	else
-		for m = 1:nmdim
-			cvals(m,k) = interp1(haxa_slev,haxa_cval(mdim(m),:),slev(k),'linear');
-		end
+	for m = 1:nmdim
+		cvals(m,k) = interp1(haxa_slev,haxa_cvaln(mdim(m),:),slev(k),'linear');
 	end
 end
