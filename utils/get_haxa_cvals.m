@@ -10,14 +10,14 @@ function cvals = get_haxa_cvals(n,mdim,slev,datadir,verb)
 %
 % cvals      critical angles (radians, in [0,pi/2] - i.e., unnormalised)
 
-global haxa_data_dir
+global local_data_dir
 
 % Parameter defaults
 
-if nargin < 2 || isempty(mdim),    mdim    = 1:n-1;         end % all
-if nargin < 3 || isempty(slev),    slev    = [0.05 0.95];   end % standard tails
-if nargin < 4 || isempty(datadir), datadir = haxa_data_dir; end % local haxa stats directory
-if nargin < 5 || isempty(verb),    verb    = false;         end % not verbose
+if nargin < 2 || isempty(mdim),    mdim    = 1:n-1;          end % all
+if nargin < 3 || isempty(slev),    slev    = [0.05 0.95];    end % standard tails
+if nargin < 4 || isempty(datadir), datadir = local_data_dir; end % local data directory
+if nargin < 5 || isempty(verb),    verb    = false;          end % not verbose
 
 assert(isvector(mdim),'Hyperplane dimension(s) must be a vector');
 assert(isvector(slev),'Significance level(s) must be a vector');

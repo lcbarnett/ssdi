@@ -40,7 +40,7 @@ for n = 2:nmax
 
 	haxa_dist_file = fullfile(datadir,sprintf('haxa_dist_n%03d_N%d.mat',n,N));
 	assert(exist(haxa_dist_file) == 2,'Hyperplane angle distribution file ''%s'' not found',haxa_dist_file);
-	fprintf('\nLoading hyperplane angle distribution file: ''%s'' ... ',haxa_dist_file);
+	fprintf('Loading hyperplane angle distribution file: ''%s'' ... ',haxa_dist_file);
 	load(haxa_dist_file);
 
 	fprintf('calculating stats ... ');
