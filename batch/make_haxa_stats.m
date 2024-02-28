@@ -8,11 +8,11 @@ function theta = make_haxa_stats(n,N,datadir,hstag)
 % datadir    stats file directory
 % hstag      stats file ID tag (optional)
 %
-% Statistics are calculated for hyperplanes of dimension 1 .. n-1 from saved
-% empirical distributions. Critical values are calculated for a set of 50
-% significance levels as in the cointegration routine 'jcitest' (Econometrics
-% Toolbox); interp1 (linear) may be used to interpolate critical values for
-% a given supplied significance level.
+% Statistics are calculated for hyperplanes of dimension 1 .. n-1 from
+% saved empirical distributions. Critical values are calculated for a set
+% of 100 significance levels 0.0001 - 0.9999; linear interpolation may be
+% used to estimate critical values for a given supplied significance level;
+% see utils/get_haxa_cvals.m.
 
 % Parameter defaults
 
@@ -38,7 +38,12 @@ theta(:,n-(1:h)) = pi/2-theta(:,1:h);
 
 % Calculate sample statistics
 
-haxa_slev = [0.001 (0.005:0.005:0.10) (0.125:0.025:0.20) (0.80:0.025:0.875) (0.90:0.005:0.995) 0.999]; % 50 significance levels as in 'jcitest'
+seg1 = 0.0001:0.0001:0.0004;
+seg2 = 0.0005:0.0005:0.010;
+seg3 = 0.015:0.005:0.10;
+seg4 = 0.125:0.025:0.275;
+
+haxa_slev = [0 seg1 seg2 seg3 seg4 1-fliplr(seg4) 1-fliplr(seg3) 1-fliplr(seg2) 1-fliplr(seg1) 1]; % 100 significance levels
 haxa_mean = mean(theta)'; % mean
 haxa_sdev = std(theta)';  % std. deviation
 haxa_cval = quantile(theta,haxa_slev)'; % critical values at significance levels corresponding to haxa_slev

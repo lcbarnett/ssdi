@@ -32,7 +32,10 @@ if verb, fprintf('Reading hyperplane angle stats from ''%s''... ',haxa_stats_fil
 load(haxa_stats_file);
 if verb, fprintf('sample size = %d\n',N); end
 
-assert(all(slev > min(haxa_slev)-eps & slev < max(haxa_slev)-eps),'Some significance level(s) out of bounds (must be in range 0.001 - 0.999)');
+slev_min = min(haxa_slev);
+slev_max = max(haxa_slev);
+
+%assert(all(slev > min(haxa_slev)-eps & slev < max(haxa_slev)-eps),'Some significance level(s) out of bounds (must be in range 0.001 - 0.999)');
 
 nmdim = length(mdim);
 nslev = length(slev);
@@ -41,7 +44,11 @@ nslev = length(slev);
 
 cvals = nan(nmdim,nslev);
 for k = 1:nslev
-	for m = 1:nmdim
-		cvals(m,k) = interp1(haxa_slev,haxa_cval(mdim(m),:),slev(k),'linear');
+	if     slev(k) < slev_min, cvals(:,k) = 0;
+	elseif slev(k) > slev_max, cvals(:,k) = pi/2;
+	else
+		for m = 1:nmdim
+			cvals(m,k) = interp1(haxa_slev,haxa_cval(mdim(m),:),slev(k),'linear');
+		end
 	end
 end
