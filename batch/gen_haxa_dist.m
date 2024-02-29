@@ -39,14 +39,14 @@ theta = zeros(N,h); % pre-allocate
 v     = zeros(n,S); % pre-allocate
 
 m = 1;
-fprintf('m = %2d of %2d\n',m,h);
+fprintf('\nm = %2d of %2d\n',m,h);
 for c = 1:C
 	fprintf('\tchunk %2d of %2d\n',c,C);
 	v = randn(n,S);
 	theta((c-1)*S+1:c*S,m) = acos(sqrt((v(1,:).^2)./sum(v.^2))); % angles with 1st axis
 end
 for m = 2:h
-	fprintf('m = %2d of %2d\n',m,h);
+	fprintf('\nm = %2d of %2d\n',m,h);
 	for c = 1:C
 		fprintf('\tchunk %2d of %2d\n',c,C);
 		v = randn(n,S);
