@@ -41,14 +41,14 @@ v     = zeros(n,S); % pre-allocate
 m = 1;
 fprintf('\nm = %2d of %2d\n',m,h);
 for c = 1:C
-	fprintf('\tchunk %2d of %2d\n',c,C);
+	fprintf('\tchunk %3d of %3d\n',c,C);
 	v = randn(n,S);
 	theta((c-1)*S+1:c*S,m) = acos(sqrt((v(1,:).^2)./sum(v.^2))); % angles with 1st axis
 end
 for m = 2:h
 	fprintf('\nm = %2d of %2d\n',m,h);
 	for c = 1:C
-		fprintf('\tchunk %2d of %2d\n',c,C);
+		fprintf('\tchunk %3d of %3d\n',c,C);
 		v = randn(n,S);
 		theta((c-1)*S+1:c*S,m) = acos(sqrt(sum(v(1:m,:).^2)./sum(v.^2))); % angles with hyperplane formed by 1st m axes
 	end
@@ -59,5 +59,5 @@ end
 if datadir(end) == filesep, datadir = datadir(1:end-1); end % strip trailing file path separator
 haxa_dist_file = fullfile(datadir,sprintf('haxa_dist_n%03d_N%d%s.mat',n,N));
 fprintf('\nSaving hyperplane angle distribution file: ''%s'' ... ',haxa_dist_file);
-save(haxa_dist_file,'n','N','theta');
+save(haxa_dist_file,'n','N','theta','-v7.3');
 fprintf('done\n\n');
