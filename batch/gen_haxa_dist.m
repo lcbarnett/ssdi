@@ -39,7 +39,7 @@ theta = zeros(N,h); % pre-allocate
 v     = zeros(n,S); % pre-allocate
 
 m = 1;
-printf('m = %2d of %2d\n',m,h);
+fprintf('m = %2d of %2d\n',m,h);
 for c = 1:C
 	fprintf('\tchunk %2d of %2d\n',c,C);
 	v = randn(n,S);
