@@ -56,6 +56,8 @@ for n = 2:nmax
 	haxa_sdev{n} = std(theta)';  % std. deviation
 	haxa_cval{n} = quantile(theta,haxa_slev)'; % critical values at significance levels corresponding to haxa_slev
 
+	clear theta
+
 	fprintf('done\n');
 end
 
