@@ -4,7 +4,7 @@ defvar('n',        20    ); % observables dimension
 defvar('r',        7     ); % state dimension (model order)
 defvar('rho',      0.9   ); % VAR spectral radius
 defvar('alpha',    0.05  ); % significance levels
-defvar('mhtc',    'FDRD' ); % multiple hypothesis test correction (see MVGC2 stats/significance.m)
+defvar('mhtc',    true   ); % use (Bonferroni) multiple hypothesis test correction?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -16,8 +16,8 @@ defvar('mhtc',    'FDRD' ); % multiple hypothesis test correction (see MVGC2 sta
 
 % Calculate Beta statistics
 
-beta_cc = habeta(L_cc); % angles (in radians) of channel axes with causal core hyperplane
-beta_wn = habeta(L_wn); % angles (in radians) of channel axes with white-noise core hyperplane
+beta_cc = habeta(L_cc); % hyperplane/channel Beta statistics for causal core
+beta_wn = habeta(L_wn); % hyperplane/channel Beta statistics for white-noise core
 
 % Statistical inference on Beta statistics for all channels
 %
@@ -26,11 +26,11 @@ beta_wn = habeta(L_wn); % angles (in radians) of channel axes with white-noise c
 [cval_cc,pval_cc,sig_cc] = habeta_statinf(beta_cc,n,r,  alpha,mhtc);
 [cval_wn,pval_wn,sig_wn] = habeta_statinf(beta_wn,n,n-r,alpha,mhtc);
 
-fprintf('\nSignificant non-participation (left tail)\n   CC  WN\n-----------\n');
-disp([sig_cc(:,1) sig_wn(:,1)]);
+fprintf('\nSignificant non-participation (left tail)\n     CC    WN\n---------------\n');
+disp(0+[sig_cc(:,1) sig_wn(:,1)]);
 
-fprintf('\nSignificant participation (right tail)\n   CC  WN\n-----------\n');
-disp([sig_cc(:,2) sig_wn(:,2)]);
+fprintf('\nSignificant participation (right tail)\n     CC    WN\n---------------\n');
+disp(0+[sig_cc(:,2) sig_wn(:,2)]);
 
 % Display with confidence regions
 
