@@ -4,7 +4,7 @@ defvar('n',        20    ); % observables dimension
 defvar('r',        7     ); % state dimension (model order)
 defvar('rho',      0.9   ); % VAR spectral radius
 defvar('alpha',    0.05  ); % significance levels
-defvar('mhtc',    true   ); % use (Bonferroni) multiple hypothesis test correction?
+defvar('mhtc',     true  ); % use (Bonferroni) multiple hypothesis test correction?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
