@@ -37,9 +37,6 @@ assert(isvector(beta),'Beta statistics must be a vector');
 beta  = beta(:);      % ensure column vector
 nbeta = length(beta); % number of stats to test
 
-if mhtc
-	slevel = slevel/(2*nbeta); % Bonferroni correction; 2*nbeta because left- and right-tailed tests!
-end
 
 % Beta distribution parameters
 
@@ -49,16 +46,19 @@ bcdf = betacdf(beta,a,b);
 
 if     strcmpi(tails,'left')
 
+	if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
 	cval = betainv(slevel,a,b);
-	pval = [bcdf 1-bcdf];
+	pval = bcdf;
 
 elseif strcmpi(tails,'right')
 
+	if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
 	cval = betainv(1-slevel,a,b);
-	pval = [bcdf 1-bcdf];
+	pval = 1-bcdf;
 
 elseif strcmpi(tails,'both')
 
+	if mhtc, slevel = slevel/(2*nbeta); end % Bonferroni correction
 	cval = betainv([slevel 1-slevel],a,b);
 	pval = [bcdf 1-bcdf];
 
