@@ -23,13 +23,13 @@ beta_wn = habeta(L_wn); % hyperplane/channel Beta statistics for white-noise cor
 %
 % NOTE: dim(L_wn) = n-r, dim(L_cc) = r
 
-[cval_cc,pval_cc,sig_cc] = habeta_statinf(beta_cc,n,r,  alpha,mhtc);
-[cval_wn,pval_wn,sig_wn] = habeta_statinf(beta_wn,n,n-r,alpha,mhtc);
+[cval_cc,pval_cc,sig_cc] = habeta_statinf(beta_cc,n,r,  alpha,'both',mhtc);
+[cval_wn,pval_wn,sig_wn] = habeta_statinf(beta_wn,n,n-r,alpha,'both',mhtc);
 
-fprintf('\nSignificant non-participation (left tail)\n     CC    WN\n---------------\n');
+fprintf('\nSignificant non-participation (left tail):\n\n     CC    WN\n     --------\n');
 disp(0+[sig_cc(:,1) sig_wn(:,1)]);
 
-fprintf('\nSignificant participation (right tail)\n     CC    WN\n---------------\n');
+fprintf('Significant participation (right tail):\n\n     CC    WN\n     --------\n');
 disp(0+[sig_cc(:,2) sig_wn(:,2)]);
 
 % Display with confidence regions

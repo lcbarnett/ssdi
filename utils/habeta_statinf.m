@@ -1,4 +1,4 @@
-function [cval,pval,sig] = habeta_statinf(beta,n,m,slevel,mhtc)
+function [cval,pval,sig] = habeta_statinf(beta,n,m,slevel,tails,mhtc)
 
 % Get critical values, p-values and significance for left- and
 % right-tailed tests of the hyperplane axis angle beta statistic
@@ -19,16 +19,19 @@ function [cval,pval,sig] = habeta_statinf(beta,n,m,slevel,mhtc)
 % n          dimension of enclosing Euclidean space
 % m          dimension of hyperplane
 % slevel     significance level (alpha)
+% tails      'left' (non-participation), 'right' (participation) or 'both'
 % mhtc       use Bonferroni multiple hypotheses test correction?
 %
-% pval and sig are returned as nbeta x 2 matrices, where nbeta is
-% the number of beta statistics supplied; the 1st column are the
-% left-tail (non-participation) values, the 2nd column are the
-% right-tail (participation) values. cval is a 2-vector (left-
-% and right-tails).
+% If tails is set to 'both', pval and sig are returned as nbeta x 2
+% matrices, where nbeta is the number of beta statistics supplied;
+% the 1st column are the left-tail (non-participation) values, the
+% 2nd column are the right-tail (participation) values; otherwise
+% they are (column) vectors. cval is a (row) 2-vector (left- and
+% right-tails).
 
-if nargin < 4 || isempty(slevel), slevel = 0.05; end
-if nargin < 5 || isempty(mhtc),   mhtc   = true; end
+if nargin < 4 || isempty(slevel), slevel = 0.05;   end
+if nargin < 5 || isempty(tails),  tails  = 'both'; end
+if nargin < 6 || isempty(mhtc),   mhtc   = true;   end
 
 assert(isvector(beta),'Beta statistics must be a vector');
 beta  = beta(:);      % ensure column vector
@@ -42,10 +45,25 @@ end
 
 a = m/2;
 b = (n-m)/2;
-
-cval = betainv([slevel 1-slevel],a,b); % left-tail, right-tail
-
 bcdf = betacdf(beta,a,b);
-pval = [bcdf 1-bcdf];  % left-tail, right-tail
+
+if     strcmpi(tails,'left')
+
+	cval = betainv(slevel,a,b);
+	pval = [bcdf 1-bcdf];
+
+elseif strcmpi(tails,'right')
+
+	cval = betainv(1-slevel,a,b);
+	pval = [bcdf 1-bcdf];
+
+elseif strcmpi(tails,'both')
+
+	cval = betainv([slevel 1-slevel],a,b);
+	pval = [bcdf 1-bcdf];
+
+else
+	error('Bad ''tails'' parameter');
+end
 
 sig  = pval <= slevel;
