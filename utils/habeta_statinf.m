@@ -37,33 +37,39 @@ assert(isvector(beta),'Beta statistics must be a vector');
 beta  = beta(:);      % ensure column vector
 nbeta = length(beta); % number of stats to test
 
-
 % Beta distribution parameters
 
 a = m/2;
 b = (n-m)/2;
 bcdf = betacdf(beta,a,b);
 
-if     strcmpi(tails,'left')
+% p-values, critical values
 
-	if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
-	cval = betainv(slevel,a,b);
-	pval = bcdf;
+switch lower(tails)
 
-elseif strcmpi(tails,'right')
+	case 'left'
 
-	if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
-	cval = betainv(1-slevel,a,b);
-	pval = 1-bcdf;
+		if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
+		cval = betainv(slevel,a,b);
+		pval = bcdf;
 
-elseif strcmpi(tails,'both')
+	case 'right'
 
-	if mhtc, slevel = slevel/(2*nbeta); end % Bonferroni correction
-	cval = betainv([slevel 1-slevel],a,b);
-	pval = [bcdf 1-bcdf];
+		if mhtc, slevel = slevel/nbeta; end % Bonferroni correction
+		cval = betainv(1-slevel,a,b);
+		pval = 1-bcdf;
 
-else
-	error('Bad ''tails'' parameter');
+	case 'both'
+
+		if mhtc, slevel = slevel/(2*nbeta); end % Bonferroni correction
+		cval = betainv([slevel 1-slevel],a,b);
+		pval = [bcdf 1-bcdf];
+
+	otherwise
+
+		error('Bad ''tails'' parameter');
 end
+
+% Significances
 
 sig  = pval <= slevel;
