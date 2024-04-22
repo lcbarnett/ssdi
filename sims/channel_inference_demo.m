@@ -35,7 +35,7 @@ disp(0+[sig_cc(:,2) sig_wn(:,2)]);
 % Display with confidence regions
 
 figure(1); clf;
-sgtitle(sprintf('$\\beta$ statistics for causal and white-noise cores: n = %d, r = %d\n',r,n),'Interpreter','latex','FontSize',16);
+sgtitle(sprintf('$\\beta$ statistics for causal and white-noise cores: n = %d, r = %d\n',n,r),'Interpreter','latex','FontSize',16);
 xlims = [0.3,n+0.7];
 
 % Causal core
