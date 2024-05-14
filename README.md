@@ -1,7 +1,7 @@
 # ssdi
-Implement Dynamical Independence computation for linear state-space systems, as described in:
+An implementation of Dynamical Independence computation and optimisation for linear state-space systems, as described in:
 
-L. Barnett and A. K. Seth, _Dynamical independence: discovering emergent macroscopic processes in complex dynamical systems_, [arXiv:2106.06511 [nlin.AO]](https://arxiv.org/abs/2106.06511), 2021.
+L. Barnett and A. K. Seth, _Dynamical independence: Discovering emergent macroscopic processes in complex dynamical systems_, [Phys. Rev. E **108**, 014304](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.108.014304), 2023
 
 Please cite the above if you use this code in your work.
 
